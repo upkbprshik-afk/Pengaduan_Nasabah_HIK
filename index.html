@@ -1,0 +1,7550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Pengaduan Nasabah HIK</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f4f6f8;
+    color:#1f2937;
+    font-size:13px;
+}
+
+button,input,select,textarea{
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+button{
+    cursor:pointer;
+    border:0;
+    border-radius:6px;
+    padding:8px 11px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+input,select,textarea{
+    width:100%;
+    padding:8px 9px;
+    border:1px solid #d1d5db;
+    border-radius:6px;
+    background:#fff;
+    font-size:12px;
+    outline:none;
+}
+
+textarea{
+    min-height:90px;
+    resize:vertical;
+}
+
+/* LOGIN */
+#loginPage{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#0f766e,#134e4a);
+}
+
+.login-box{
+    width:360px;
+    max-width:92%;
+    background:#fff;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+
+.login-logo{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.login-logo h1{
+    margin:0;
+    font-size:21px;
+    color:#0f766e;
+}
+
+.login-logo p{
+    margin:6px 0 0;
+    color:#6b7280;
+    font-size:12px;
+}
+
+.login-box label{
+    display:block;
+    margin:12px 0 5px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.login-button{
+    width:100%;
+    margin-top:18px;
+    padding:10px;
+    background:#0f766e;
+    color:#fff;
+}
+
+.login-error{
+    display:none;
+    margin-top:10px;
+    padding:9px;
+    border-radius:6px;
+    background:#fee2e2;
+    color:#991b1b;
+    font-size:11px;
+}
+
+/* APP */
+#app{
+    display:none;
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:225px;
+    background:#0f172a;
+    color:#fff;
+    overflow-y:auto;
+}
+
+.sidebar-header{
+    padding:18px;
+    border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.sidebar-header h2{
+    margin:0;
+    font-size:16px;
+}
+
+.sidebar-header small{
+    display:block;
+    margin-top:5px;
+    color:#cbd5e1;
+    font-size:10px;
+}
+
+.menu{
+    padding:12px 9px;
+}
+
+.menu-item{
+    padding:10px 12px;
+    margin-bottom:4px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:12px;
+}
+
+.menu-item:hover,
+.menu-item.active{
+    background:#0f766e;
+}
+
+.main{
+    margin-left:225px;
+    min-height:100vh;
+}
+
+.topbar{
+    height:58px;
+    background:#fff;
+    border-bottom:1px solid #e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    position:sticky;
+    top:0;
+    z-index:20;
+}
+
+.topbar-title{
+    font-size:13px;
+    font-weight:bold;
+}
+
+.user-area{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.user-badge{
+    background:#ecfdf5;
+    color:#047857;
+    padding:6px 9px;
+    border-radius:15px;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.logout-button{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.content{
+    padding:18px;
+}
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.page-title{
+    margin-bottom:15px;
+}
+
+.page-title h1{
+    margin:0 0 4px;
+    font-size:19px;
+}
+
+.page-title p{
+    margin:0;
+    color:#6b7280;
+    font-size:11px;
+}
+
+/* BUTTON */
+.btn-primary{background:#0f766e;color:#fff}
+.btn-success{background:#16a34a;color:#fff}
+.btn-warning{background:#f59e0b;color:#fff}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-secondary{background:#e5e7eb;color:#374151}
+
+/* tambahan tombol sampah */
+.btn-trash{
+    background:#7c3aed;
+    color:#fff;
+}
+
+.btn-restore{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-permanent{
+    background:#991b1b;
+    color:#fff;
+}
+
+.button-group{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+}
+
+/* DASHBOARD CARD */
+.dashboard-cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:15px;
+}
+
+.dashboard-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    padding:13px;
+}
+
+.dashboard-card small{
+    color:#6b7280;
+    font-size:10px;
+}
+
+.dashboard-card strong{
+    display:block;
+    margin-top:6px;
+    color:#0f766e;
+    font-size:22px;
+}
+
+/* FILTER */
+.filter-box{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    padding:13px;
+    margin-bottom:15px;
+}
+
+.filter-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:9px;
+}
+
+label{
+    display:block;
+    margin-bottom:5px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+/* TUJUAN */
+.destination-box{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    padding:14px;
+    margin-bottom:15px;
+}
+
+.destination-box h3{
+    margin:0 0 11px;
+    font-size:13px;
+}
+
+.destination-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+}
+
+.destination-card{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:7px;
+    padding:11px;
+}
+
+.destination-name{
+    font-weight:bold;
+    font-size:11px;
+    min-height:30px;
+}
+
+.destination-count{
+    color:#0f766e;
+    font-size:20px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.destination-percent{
+    color:#6b7280;
+    font-size:9px;
+    margin-top:2px;
+}
+
+/* CHART */
+.chart-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.chart-box{
+    height:320px;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    padding:13px;
+}
+
+.chart-box.large{
+    grid-column:1/-1;
+    height:300px;
+}
+
+.chart-box h3{
+    margin:0 0 8px;
+    font-size:12px;
+}
+
+.chart-container{
+    position:relative;
+    height:255px;
+}
+
+.chart-box.large .chart-container{
+    height:235px;
+}
+
+/* TABLE */
+.table-box{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    overflow:hidden;
+}
+
+.table-header{
+    padding:13px;
+    border-bottom:1px solid #e5e7eb;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+}
+
+.table-header b{
+    font-size:12px;
+}
+
+.table-scroll{
+    overflow:auto;
+    max-height:560px;
+}
+
+table{
+    width:100%;
+    min-width:1450px;
+    border-collapse:collapse;
+}
+
+th{
+    position:sticky;
+    top:0;
+    z-index:5;
+    background:#f8fafc;
+    border-bottom:1px solid #e5e7eb;
+    padding:9px 8px;
+    text-align:left;
+    font-size:10px;
+    white-space:nowrap;
+}
+
+td{
+    border-bottom:1px solid #f1f5f9;
+    padding:8px;
+    font-size:10px;
+    vertical-align:middle;
+}
+
+.name-link{
+    color:#0f766e;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.name-link:hover{
+    text-decoration:underline;
+}
+
+.status-badge{
+    display:inline-block;
+    padding:4px 6px;
+    border-radius:15px;
+    font-size:9px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.status-green{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.status-yellow{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.status-red{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.status-blue{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+/* FORM */
+.form-box{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    padding:17px;
+}
+
+.form-section{
+    margin-bottom:20px;
+}
+
+.form-section h3{
+    margin:0 0 12px;
+    padding-bottom:7px;
+    border-bottom:2px solid #0f766e;
+    font-size:13px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:11px;
+}
+
+.full{
+    grid-column:1/-1;
+}
+
+.field-help{
+    display:block;
+    margin-top:4px;
+    color:#6b7280;
+    font-size:9px;
+}
+
+.registration-preview{
+    background:#ecfdf5;
+    border:1px solid #a7f3d0;
+    color:#065f46;
+    border-radius:6px;
+    padding:8px;
+    min-height:34px;
+    font-weight:bold;
+    font-size:11px;
+}
+
+.form-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:6px;
+    border-top:1px solid #e5e7eb;
+    padding-top:14px;
+}
+
+/* MASTER */
+.master-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:13px;
+}
+
+.master-box{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    padding:14px;
+}
+
+.master-box h3{
+    margin:0 0 11px;
+    font-size:13px;
+}
+
+.master-add{
+    display:flex;
+    gap:5px;
+    margin-bottom:9px;
+}
+
+.master-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding:7px 0;
+    border-bottom:1px solid #f1f5f9;
+    font-size:10px;
+}
+
+/* SAMPAH */
+.trash-info{
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+    color:#9a3412;
+    border-radius:9px;
+    padding:12px 14px;
+    margin-bottom:15px;
+    font-size:11px;
+}
+
+.trash-count{
+    color:#7c3aed;
+    font-weight:bold;
+}
+
+/* MODAL */
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.6);
+    z-index:100;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-content{
+    width:900px;
+    max-width:100%;
+    max-height:88vh;
+    overflow:auto;
+    background:#fff;
+    border-radius:11px;
+}
+
+.modal-header{
+    position:sticky;
+    top:0;
+    z-index:2;
+    background:#fff;
+    border-bottom:1px solid #e5e7eb;
+    padding:13px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:13px;
+}
+
+.modal-close{
+    background:#f3f4f6;
+}
+
+.modal-body{
+    padding:16px;
+}
+
+.detail-highlight{
+    background:#ecfdf5;
+    border:1px solid #a7f3d0;
+    border-radius:7px;
+    padding:12px;
+    margin-bottom:14px;
+}
+
+.detail-highlight strong{
+    color:#065f46;
+    font-size:15px;
+}
+
+.detail-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:11px;
+}
+
+.detail-item{
+    border-bottom:1px solid #f1f5f9;
+    padding-bottom:8px;
+}
+
+.detail-item.full{
+    grid-column:1/-1;
+}
+
+.detail-item small{
+    display:block;
+    color:#6b7280;
+    margin-bottom:4px;
+    font-size:9px;
+}
+
+.detail-item div{
+    font-size:11px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+/* TOAST */
+#toast{
+    position:fixed;
+    right:15px;
+    bottom:15px;
+    z-index:200;
+    display:none;
+    background:#111827;
+    color:#fff;
+    padding:10px 14px;
+    border-radius:7px;
+    font-size:11px;
+}
+
+#toast.show{
+    display:block;
+}
+
+@media(max-width:1100px){
+
+    .dashboard-cards{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .filter-grid{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .chart-grid{
+        grid-template-columns:1fr;
+    }
+
+    .chart-box.large{
+        grid-column:auto;
+    }
+}
+
+@media(max-width:800px){
+
+    .sidebar{
+        position:relative;
+        width:100%;
+    }
+
+    .main{
+        margin-left:0;
+    }
+
+    .form-grid,
+    .detail-grid,
+    .master-grid{
+        grid-template-columns:1fr;
+    }
+
+    .filter-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .destination-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:550px){
+
+    .dashboard-cards,
+    .filter-grid,
+    .destination-grid{
+        grid-template-columns:1fr;
+    }
+
+    .content{
+        padding:11px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+
+    <div class="login-box">
+
+        <div class="login-logo">
+            <h1>PT BPR Syariah HIK</h1>
+            <p>Dashboard Pengaduan Nasabah</p>
+        </div>
+
+        <form id="loginForm">
+
+            <label>Email</label>
+
+            <input
+                id="loginEmail"
+                type="email"
+                placeholder="Masukkan email"
+                required
+            >
+
+            <label>Password</label>
+
+            <input
+                id="loginPassword"
+                type="password"
+                placeholder="Masukkan password"
+                required
+            >
+
+            <button
+                type="submit"
+                class="login-button">
+                MASUK
+            </button>
+
+            <div id="loginError" class="login-error">
+                Email atau password salah.
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- APP -->
+<div id="app">
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <h2>PT BPR Syariah HIK</h2>
+            <small>Dashboard Pengaduan Nasabah</small>
+        </div>
+
+        <div class="menu">
+
+            <div class="menu-item active"
+                 data-page="dashboard"
+                 onclick="showPage('dashboard',this)">
+                📊 Dashboard
+            </div>
+
+            <div class="menu-item"
+                 data-page="data"
+                 onclick="showPage('data',this)">
+                📋 Data Pengaduan
+            </div>
+
+            <div class="menu-item"
+                 data-page="form"
+                 onclick="showPage('form',this)">
+                ➕ Tambah Pengaduan
+            </div>
+
+            <div class="menu-item"
+                 data-page="master"
+                 onclick="showPage('master',this)">
+                ⚙️ Master Data
+            </div>
+
+            <div class="menu-item"
+                 data-page="trash"
+                 onclick="showPage('trash',this)">
+                🗑️ Sampah
+            </div>
+
+            <div class="menu-item"
+                 data-page="backup"
+                 onclick="showPage('backup',this)">
+                💾 Backup & Export
+            </div>
+
+            <!-- TAMBAHAN: HANYA MASTER -->
+            <div class="menu-item"
+                 id="menuUsers"
+                 data-page="users"
+                 onclick="showPage('users',this)"
+                 style="display:none">
+                👤 Manajemen Akun
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <main class="main">
+
+        <div class="topbar">
+
+            <div class="topbar-title">
+                Dashboard Pengaduan Nasabah
+            </div>
+
+            <div class="user-area">
+
+                <span
+                    id="topUserBadge"
+                    class="user-badge">
+                    Pusat / Master
+                </span>
+
+                <button
+                    class="logout-button"
+                    onclick="logout()">
+                    Keluar
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="content">
+
+            <!-- DASHBOARD -->
+            <section id="page-dashboard" class="page active">
+
+                <div class="page-title">
+
+                    <h1>Dashboard</h1>
+
+                    <p>
+                        Ringkasan pengaduan nasabah.
+                    </p>
+
+                </div>
+
+
+                <div class="dashboard-cards">
+
+                    <div class="dashboard-card">
+                        <small>Total Pengaduan</small>
+                        <strong id="cardTotal">0</strong>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <small>Pengaduan Aktif</small>
+                        <strong id="cardAktif">0</strong>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <small>Pengaduan Ditutup</small>
+                        <strong id="cardDitutup">0</strong>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <small>Total Kategori</small>
+                        <strong id="cardKategori">0</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="filter-box">
+
+                    <div class="filter-grid">
+
+                        <div>
+                            <label>Tahun</label>
+
+                            <select
+                                id="dashboardYear"
+                                onchange="renderDashboard()">
+                                <option value="">
+                                    Semua Tahun
+                                </option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label>Bulan</label>
+
+                            <select
+                                id="dashboardMonth"
+                                onchange="renderDashboard()">
+
+                                <option value="">
+                                    Semua Bulan
+                                </option>
+
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label>Produk</label>
+
+                            <select
+                                id="dashboardProduct"
+                                onchange="renderDashboard()">
+                                <option value="">
+                                    Semua Produk
+                                </option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label>Tujuan Pelaporan</label>
+
+                            <select
+                                id="dashboardTujuan"
+                                onchange="renderDashboard()">
+                                <option value="">
+                                    Semua Tujuan Pelaporan
+                                </option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label>Status</label>
+
+                            <select
+                                id="dashboardStatus"
+                                onchange="renderDashboard()">
+                                <option value="">
+                                    Semua Status
+                                </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="destination-box">
+
+                    <h3>
+                        🎯 Pengaduan Berdasarkan Tujuan Pelaporan
+                    </h3>
+
+                    <div
+                        id="destinationGrid"
+                        class="destination-grid">
+                    </div>
+
+                </div>
+
+
+                <div class="chart-grid">
+
+                    <div class="chart-box large">
+
+                        <h3>
+                            📈 Pengaduan Berdasarkan Bulan
+                        </h3>
+
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-box">
+
+                        <h3>
+                            📊 Pengaduan Berdasarkan Status
+                        </h3>
+
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-box">
+
+                        <h3>
+                            📂 Pengaduan Berdasarkan Kategori
+                        </h3>
+
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-box">
+
+                        <h3>
+                            📱 Pengaduan Berdasarkan Media
+                        </h3>
+
+                        <div class="chart-container">
+                            <canvas id="mediaChart"></canvas>
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-box">
+
+                        <h3>
+                            📦 Pengaduan Berdasarkan Produk
+                        </h3>
+
+                        <div class="chart-container">
+                            <canvas id="productChart"></canvas>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- DATA -->
+            <section id="page-data" class="page">
+
+                <div class="page-title">
+
+                    <h1>Data Pengaduan</h1>
+
+                    <p>
+                        Klik nama pelapor untuk melihat informasi lengkap.
+                    </p>
+
+                </div>
+
+
+                <div class="filter-box">
+
+                    <div class="filter-grid">
+
+                        <div>
+                            <label>Pencarian</label>
+
+                            <input
+                                id="dataSearch"
+                                placeholder="Cari nomor / nama / email..."
+                                oninput="renderTable()">
+                        </div>
+
+
+                        <div>
+                            <label>Bulan</label>
+
+                            <select
+                                id="dataMonth"
+                                onchange="renderTable()">
+
+                                <option value="">
+                                    Semua Bulan
+                                </option>
+
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label>Produk</label>
+
+                            <select
+                                id="dataProduct"
+                                onchange="renderTable()">
+                                <option value="">
+                                    Semua Produk
+                                </option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label>Tujuan Pelaporan</label>
+
+                            <select
+                                id="dataTujuan"
+                                onchange="renderTable()">
+                                <option value="">
+                                    Semua Tujuan Pelaporan
+                                </option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label>Status</label>
+
+                            <select
+                                id="dataStatus"
+                                onchange="renderTable()">
+                                <option value="">
+                                    Semua Status
+                                </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="table-box">
+
+                    <div class="table-header">
+
+                        <b>
+                            Data Pengaduan
+                            (<span id="tableCount">0</span>)
+                        </b>
+
+                        <div class="button-group">
+
+                            <button
+                                class="btn-primary"
+                                onclick="startAdd()">
+                                + Tambah
+                            </button>
+
+                            <button
+                                class="btn-success"
+                                onclick="exportExcel()">
+                                📊 Excel
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="table-scroll">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>No Registrasi</th>
+                                    <th>Nama Pelapor</th>
+                                    <th>Tanggal Pengaduan</th>
+                                    <th>Tanggal Ditutup</th>
+                                    <th>Petugas Input</th>
+                                    <th>Unit Kerja</th>
+                                    <th>Media</th>
+                                    <th>Produk</th>
+                                    <th>Tujuan Pelaporan</th>
+                                    <th>Kategori</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="tableBody"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- FORM -->
+            <section id="page-form" class="page">
+
+                <div class="page-title">
+
+                    <h1 id="formTitle">
+                        Tambah Pengaduan
+                    </h1>
+
+                    <p>
+                        Masukkan informasi pengaduan nasabah.
+                    </p>
+
+                </div>
+
+
+                <div class="form-box">
+
+                    <form id="complaintForm">
+
+                        <input type="hidden" id="editId">
+
+
+                        <div class="form-section">
+
+                            <h3>
+                                1. Registrasi Pengaduan
+                            </h3>
+
+                            <div class="form-grid">
+
+                                <div>
+
+                                    <label>
+                                        Tanggal Pengaduan *
+                                    </label>
+
+                                    <input
+                                        id="formTanggal"
+                                        type="date"
+                                        required
+                                        onchange="updatePreviewNumber()">
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Nomor Registrasi
+                                    </label>
+
+                                    <div
+                                        id="registrationPreview"
+                                        class="registration-preview">
+                                        Otomatis
+                                    </div>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Nama Petugas Input *
+                                    </label>
+
+                                    <input id="formPetugas" required>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Unit Kerja *
+                                    </label>
+
+                                    <select
+                                        id="formUnitKerja"
+                                        required>
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Media Pengaduan *
+                                    </label>
+
+                                    <select
+                                        id="formMedia"
+                                        required>
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Produk *
+                                    </label>
+
+                                    <select
+                                        id="formProduk"
+                                        required>
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Tujuan Pelaporan *
+                                    </label>
+
+                                    <select
+                                        id="formTujuan"
+                                        required>
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Kategori Permasalahan *
+                                    </label>
+
+                                    <select
+                                        id="formKategori"
+                                        required>
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Status *
+                                    </label>
+
+                                    <select
+                                        id="formStatus"
+                                        required
+                                        onchange="handleStatusChange()">
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Tanggal Ditutup
+                                    </label>
+
+                                    <input
+                                        id="formTanggalDitutup"
+                                        type="date">
+
+                                    <span class="field-help">
+                                        Wajib diisi apabila status = Ditutup.
+                                        Saat status menjadi Ditutup,
+                                        tanggal hari ini akan terisi otomatis.
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-section">
+
+                            <h3>
+                                2. Identitas Pelapor
+                            </h3>
+
+                            <div class="form-grid">
+
+                                <div>
+
+                                    <label>
+                                        Nama Pelapor *
+                                    </label>
+
+                                    <input
+                                        id="formNama"
+                                        required>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Jenis Identitas
+                                    </label>
+
+                                    <select id="formJenisIdentitas">
+
+                                        <option value="">
+                                            Pilih
+                                        </option>
+
+                                        <option>KTP</option>
+                                        <option>SIM</option>
+                                        <option>Paspor</option>
+                                        <option>KK</option>
+                                        <option>Lainnya</option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Nomor Identitas
+                                    </label>
+
+                                    <input id="formNomorIdentitas">
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Nomor Handphone
+                                    </label>
+
+                                    <input id="formNoHp">
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Email
+                                    </label>
+
+                                    <input
+                                        id="formEmail"
+                                        type="email">
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Nama Kuasa / Pengacara
+                                    </label>
+
+                                    <input id="formKuasa">
+
+                                </div>
+
+
+                                <div class="full">
+
+                                    <label>
+                                        Alamat
+                                    </label>
+
+                                    <textarea id="formAlamat"></textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-section">
+
+                            <h3>
+                                3. Detail Pengaduan
+                            </h3>
+
+                            <div class="form-grid">
+
+                                <div class="full">
+
+                                    <label>
+                                        Kronologi Pengaduan *
+                                    </label>
+
+                                    <textarea
+                                        id="formKronologi"
+                                        required>
+                                    </textarea>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Nilai Kerugian
+                                    </label>
+
+                                    <input
+                                        id="formKerugian"
+                                        type="number"
+                                        min="0">
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Dokumen Pendukung
+                                    </label>
+
+                                    <input
+                                        id="formDokumen"
+                                        type="file"
+                                        multiple>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-section">
+
+                            <h3>
+                                4. Penyelesaian
+                            </h3>
+
+                            <div class="form-grid">
+
+                                <div class="full">
+
+                                    <label>
+                                        Penyelesaian / Tanggapan Bank
+                                    </label>
+
+                                    <textarea
+                                        id="formPenyelesaian">
+                                    </textarea>
+
+                                </div>
+
+
+                                <div class="full">
+
+                                    <label>
+                                        Keberatan terhadap Penyelesaian
+                                    </label>
+
+                                    <textarea
+                                        id="formKeberatan">
+                                    </textarea>
+
+                                </div>
+
+
+                                <div class="full">
+
+                                    <label>
+                                        Penyelesaian atas Keberatan
+                                    </label>
+
+                                    <textarea
+                                        id="formPenyelesaianKeberatan">
+                                    </textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-footer">
+
+                            <button
+                                type="button"
+                                class="btn-secondary"
+                                onclick="cancelForm()">
+                                Batal
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="btn-primary">
+                                Simpan Pengaduan
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </section>
+
+
+            <!-- MASTER DATA -->
+            <section id="page-master" class="page">
+
+                <div class="page-title">
+
+                    <h1>Master Data</h1>
+
+                    <p>
+                        Kelola pilihan data pengaduan.
+                    </p>
+
+                </div>
+
+
+                <div class="master-grid">
+
+                    <div class="master-box">
+                        <h3>Media Pengaduan</h3>
+                        <div id="masterMedia"></div>
+                    </div>
+
+                    <div class="master-box">
+                        <h3>Produk</h3>
+                        <div id="masterProduk"></div>
+                    </div>
+
+                    <div class="master-box">
+                        <h3>Status</h3>
+                        <div id="masterStatus"></div>
+                    </div>
+
+                    <div class="master-box">
+                        <h3>Tujuan Pelaporan</h3>
+                        <div id="masterTujuan"></div>
+                    </div>
+
+                    <div class="master-box">
+                        <h3>Kategori Permasalahan</h3>
+                        <div id="masterKategori"></div>
+                    </div>
+
+                    <div class="master-box">
+                        <h3>Unit Kerja</h3>
+                        <div id="masterUnitKerja"></div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SAMPAH -->
+            <section id="page-trash" class="page">
+
+                <div class="page-title">
+
+                    <h1>🗑️ Sampah</h1>
+
+                    <p>
+                        Data yang dihapus disimpan sementara dan dapat dipulihkan oleh Master.
+                    </p>
+
+                </div>
+
+
+                <div class="trash-info">
+
+                    <b>Perhatian:</b>
+                    Data yang dihapus dari Data Pengaduan tidak langsung hilang.
+                    Data akan dipindahkan ke Sampah.
+                    Master dapat memulihkan atau menghapus data secara permanen.
+
+                    <br><br>
+
+                    Jumlah data di Sampah:
+                    <span
+                        id="trashCount"
+                        class="trash-count">
+                        0
+                    </span>
+
+                </div>
+
+
+                <div class="table-box">
+
+                    <div class="table-header">
+
+                        <b>
+                            Data Pengaduan di Sampah
+                            (<span id="trashTableCount">0</span>)
+                        </b>
+
+                        <div class="button-group">
+
+                            <button
+                                class="btn-restore"
+                                onclick="restoreAllTrash()">
+                                ♻️ Pulihkan Semua
+                            </button>
+
+                            <button
+                                class="btn-permanent"
+                                onclick="emptyTrash()">
+                                🗑️ Kosongkan Sampah
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="table-scroll">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>No Registrasi</th>
+                                    <th>Nama Pelapor</th>
+                                    <th>Tanggal Pengaduan</th>
+                                    <th>Tanggal Ditutup</th>
+                                    <th>Petugas Input</th>
+                                    <th>Unit Kerja</th>
+                                    <th>Media</th>
+                                    <th>Produk</th>
+                                    <th>Tujuan Pelaporan</th>
+                                    <th>Kategori</th>
+                                    <th>Status</th>
+                                    <th>Dihapus Pada</th>
+                                    <th>Aksi</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="trashTableBody"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- BACKUP -->
+            <section id="page-backup" class="page">
+
+                <div class="page-title">
+
+                    <h1>Backup & Export</h1>
+
+                    <p>
+                        Cadangkan data atau ekspor data ke Excel/CSV.
+                    </p>
+
+                </div>
+
+
+                <div class="form-box">
+
+                    <p>
+                        Jumlah data:
+                        <b id="backupCount">0</b>
+                    </p>
+
+                    <p>
+                        Jumlah data di Sampah:
+                        <b id="backupTrashCount">0</b>
+                    </p>
+
+
+                    <div class="button-group">
+
+                        <button
+                            id="backupDownloadButton"
+                            class="btn-primary"
+                            onclick="downloadBackup()">
+                            💾 Download Backup
+                        </button>
+
+
+                        <label
+                            id="restoreBackupLabel"
+                            class="btn-secondary"
+                            style="cursor:pointer">
+
+                            📂 Restore Backup
+
+                            <input
+                                type="file"
+                                accept=".json"
+                                hidden
+                                onchange="restoreBackup(event)">
+
+                        </label>
+
+
+                        <button
+                            class="btn-success"
+                            onclick="exportExcel()">
+                            📊 Download Excel
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- MANAJEMEN AKUN -->
+            <section id="page-users" class="page">
+
+                <div class="page-title">
+
+                    <h1>Manajemen Akun</h1>
+
+                    <p>
+                        Kelola akun pengguna dashboard pengaduan nasabah.
+                    </p>
+
+                </div>
+
+
+                <div class="form-box">
+
+                    <div class="form-section">
+
+                        <h3>
+                            Tambah / Edit Akun
+                        </h3>
+
+                        <form id="userForm">
+
+                            <input
+                                type="hidden"
+                                id="userEditId">
+
+
+                            <div class="form-grid">
+
+                                <div>
+
+                                    <label>
+                                        Login / Email *
+                                    </label>
+
+                                    <input
+                                        id="userLogin"
+                                        type="email"
+                                        placeholder="contoh@bprshik.co.id"
+                                        required>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Password *
+                                    </label>
+
+                                    <input
+                                        id="userPassword"
+                                        type="text"
+                                        placeholder="Masukkan password"
+                                        required>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Nama Pengguna *
+                                    </label>
+
+                                    <input
+                                        id="userName"
+                                        placeholder="Nama pengguna"
+                                        required>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Unit Kerja *
+                                    </label>
+
+                                    <select
+                                        id="userUnit"
+                                        required>
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Hak Akses *
+                                    </label>
+
+                                    <select id="userRole" required>
+
+                                        <option value="USER">
+                                            USER / CABANG
+                                        </option>
+
+                                        <option value="PUSAT">
+                                            PUSAT / KANTOR PUSAT
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <div>
+
+                                    <label>
+                                        Status
+                                    </label>
+
+                                    <select id="userActive">
+
+                                        <option value="true">
+                                            Aktif
+                                        </option>
+
+                                        <option value="false">
+                                            Nonaktif
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            <br>
+
+
+                            <div class="form-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn-secondary"
+                                    onclick="cancelUserForm()">
+                                    Batal
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    class="btn-primary">
+                                    Simpan Akun
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+
+                <br>
+
+
+                <div class="table-box">
+
+                    <div class="table-header">
+
+                        <b>
+                            Daftar Akun
+                            (<span id="userCount">0</span>)
+                        </b>
+
+                        <button
+                            class="btn-primary"
+                            onclick="startAddUser()">
+                            + Tambah Akun
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-scroll">
+
+                        <table style="min-width:900px">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Login / Email</th>
+                                    <th>Nama</th>
+                                    <th>Hak Akses</th>
+                                    <th>Unit Kerja</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="usersTableBody"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- DETAIL MODAL -->
+<div id="detailModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <b>Detail Lengkap Pengaduan</b>
+
+            <button
+                class="modal-close"
+                onclick="closeDetail()">
+                ✕
+            </button>
+
+        </div>
+
+        <div
+            id="detailContent"
+            class="modal-body">
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="toast"></div>
+
+
+<script>
+
+/* ================================
+LOGIN & USER
+================================ */
+
+const LOGIN_EMAIL="cll@bprshik.co.id";
+const LOGIN_PASSWORD="123456";
+
+const DEFAULT_USERS=[
+
+    {
+        id:"master-001",
+        login:"cll@bprshik.co.id",
+        password:"123456",
+        name:"Pusat / Master",
+        role:"MASTER",
+        unitKerja:"ALL",
+        active:true
+    },
+  
+    {
+        id:"user-bekasi",
+        login:"bekasi@bprshik.co.id",
+        password:"Bekasi@2026",
+        name:"Cabang Bekasi",
+        role:"USER",
+        unitKerja:"HIK Bekasi",
+        active:true
+    },
+
+    {
+        id:"user-tambun",
+        login:"tambun@bprshik.co.id",
+        password:"Tambun@2026",
+        name:"Cabang Tambun",
+        role:"USER",
+        unitKerja:"HIK Tambun",
+        active:true
+    },
+
+    {
+        id:"user-karawaci",
+        login:"karawaci@bprshik.co.id",
+        password:"Karawaci@2026",
+        name:"Cabang Karawaci",
+        role:"USER",
+        unitKerja:"HIK Karawaci",
+        active:true
+    }
+
+];
+
+let users=[];
+let currentUser=null;
+
+
+/* ================================
+MASTER DATA
+================================ */
+
+const DEFAULT_MASTER={
+
+    media:[
+        "APPK",
+        "Email",
+        "WhatsApp",
+        "WA Center",
+        "Telepon",
+        "Walk In",
+        "Surat"
+    ],
+
+    produk:[
+        "Deposito",
+        "Tabungan",
+        "Pembiayaan",
+        "Lainnya"
+    ],
+
+    status:[
+        "Ditutup",
+        "Dalam Proses",
+        "Belum Selesai",
+        "Selesai",
+        "Aktif Sudah Ditanggapi",
+        "Aktif Belum Ditanggapi"
+    ],
+
+    tujuanPelaporan:[
+        "Internal",
+        "OJK",
+        "APPK",
+        "Manajemen",
+        "Unit Terkait",
+        "Lainnya"
+    ],
+
+    kategori:[
+        "Permasalahan Agunan/Jaminan",
+        "Sistem Layanan Informasi",
+        "Fraud Pegawai PUJK atau Kelalaian PUJK",
+        "Pencairan Dana Dipersulit atau Ditolak",
+        "Pencairan Dana",
+        "Sistem Pembayaran Lainnya",
+        "Bagi Hasil Tidak Keluar",
+        "Jaminan",
+        "Restrukturisasi",
+        "Perilaku Petugas Penagihan",
+        "Pencairan Deposito Dipersulit atau Ditolak",
+        "Kegagalan atau Keterlambatan Transaksi"
+    ],
+
+    unitKerja:[
+        "Kantor Pusat",
+        "HIK Bekasi",
+        "HIK Cibitung",
+        "HIK Parahyangan",
+        "HIK Tambun",
+        "HIK Karawaci",
+        "Lainnya"
+    ]
+
+};
+
+
+/* ================================
+DATA AWAL
+================================ */
+
+const INITIAL_DATA=[
+
+{
+id:1,
+nomor:"UPK-001-01-2026",
+nama:"Dariyah",
+tanggal:"2026-01-26",
+media:"WA Center",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Permasalahan Agunan/Jaminan",
+status:"Ditutup",
+tanggalDitutup:"2026-01-26"
+},
+
+{
+id:2,
+nomor:"UPK-002-03-2026",
+nama:"Taniroh",
+tanggal:"2026-03-10",
+media:"WA Center",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Sistem Layanan Informasi",
+status:"Ditutup",
+tanggalDitutup:"2026-03-10"
+},
+
+{
+id:3,
+nomor:"UPK-003-03-2026",
+nama:"Imas Masunah",
+tanggal:"2026-03-02",
+media:"APPK",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Sistem Layanan Informasi",
+status:"Ditutup",
+tanggalDitutup:"2026-03-02"
+},
+
+{
+id:4,
+nomor:"UPK-004-04-2026",
+nama:"Aknes Eka Putri Malinda",
+tanggal:"2026-04-09",
+media:"APPK",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Fraud Pegawai PUJK atau Kelalaian PUJK",
+status:"Ditutup",
+tanggalDitutup:"2026-04-09"
+},
+
+{
+id:5,
+nomor:"UPK-005-04-2026",
+nama:"Winda Gusnita",
+tanggal:"2026-04-30",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-04-30"
+},
+
+{
+id:6,
+nomor:"UPK-006-04-2026",
+nama:"Miftahul Hadi",
+tanggal:"2026-04-30",
+media:"APPK",
+produk:"Tabungan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-04-30"
+},
+
+{
+id:7,
+nomor:"UPK-007-05-2026",
+nama:"Agung Azizi",
+tanggal:"2026-05-11",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-05-11"
+},
+
+{
+id:8,
+nomor:"UPK-008-05-2026",
+nama:"Yuanno Rezky",
+tanggal:"2026-05-19",
+media:"WA Center",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Pencairan Dana",
+status:"Ditutup",
+tanggalDitutup:"2026-05-19"
+},
+
+{
+id:9,
+nomor:"UPK-009-05-2026",
+nama:"Diqo Abdillah",
+tanggal:"2026-05-26",
+media:"WA Center",
+produk:"Tabungan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Sistem Pembayaran Lainnya",
+status:"Ditutup",
+tanggalDitutup:"2026-05-26"
+},
+
+{
+id:10,
+nomor:"UPK-010-06-2026",
+nama:"Hafidz Yudhansah",
+tanggal:"2026-06-02",
+media:"Email",
+produk:"Tabungan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Sistem Pembayaran Lainnya",
+status:"Ditutup",
+tanggalDitutup:"2026-06-02"
+},
+
+{
+id:11,
+nomor:"UPK-011-06-2026",
+nama:"Tharian SH, MBA",
+tanggal:"2026-06-04",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-06-04"
+},
+
+{
+id:12,
+nomor:"UPK-012-06-2026",
+nama:"Rita Nurlina",
+tanggal:"2026-06-05",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-06-05"
+},
+
+{
+id:13,
+nomor:"UPK-013-06-2026",
+nama:"Heru Waluyo",
+tanggal:"2026-06-18",
+media:"WA Center",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Bagi Hasil Tidak Keluar",
+status:"Ditutup",
+tanggalDitutup:"2026-06-18"
+},
+
+{
+id:14,
+nomor:"UPK-014-06-2026",
+nama:"Chikita Monika",
+tanggal:"2026-06-26",
+media:"WA Center",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-06-26"
+},
+
+{
+id:15,
+nomor:"UPK-015-07-2026",
+nama:"Hendra Setiawan",
+tanggal:"2026-07-01",
+media:"WA Center",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-07-01"
+},
+
+{
+id:16,
+nomor:"UPK-016-07-2026",
+nama:"JT Harijanto Budiatno",
+tanggal:"2026-07-10",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-07-10"
+},
+
+{
+id:17,
+nomor:"UPK-017-07-2026",
+nama:"Etha",
+tanggal:"2026-07-14",
+media:"WA Center",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Jaminan",
+status:"Ditutup",
+tanggalDitutup:"2026-07-14"
+},
+
+{
+id:18,
+nomor:"UPK-018-07-2026",
+nama:"Thia Kristiana Agustin",
+tanggal:"2026-07-18",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-07-18"
+},
+
+{
+id:19,
+nomor:"UPK-019-07-2026",
+nama:"Winarto",
+tanggal:"2026-07-21",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana",
+status:"Ditutup",
+tanggalDitutup:"2026-07-21"
+},
+
+{
+id:20,
+nomor:"UPK-020-07-2026",
+nama:"Linda Dwi Pranatalia",
+tanggal:"2026-07-21",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana",
+status:"Ditutup",
+tanggalDitutup:"2026-07-21"
+},
+
+{
+id:21,
+nomor:"UPK-021-07-2026",
+nama:"Hany",
+tanggal:"2026-07-27",
+media:"WA Center",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Pencairan Dana",
+status:"Ditutup",
+tanggalDitutup:"2026-07-27"
+},
+
+{
+id:22,
+nomor:"UPK-022-08-2026",
+nama:"Siti Solehah",
+tanggal:"2026-08-05",
+media:"APPK",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Restrukturisasi",
+status:"Aktif Sudah Ditanggapi",
+tanggalDitutup:""
+},
+
+{
+id:23,
+nomor:"UPK-023-08-2026",
+nama:"Fitria Rahmadhani Putri",
+tanggal:"2026-08-08",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-08-08"
+},
+
+{
+id:24,
+nomor:"UPK-024-08-2026",
+nama:"Wini Dwi Yanti",
+tanggal:"2026-08-10",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-08-10"
+},
+
+{
+id:25,
+nomor:"UPK-025-08-2026",
+nama:"Selly Rahmawati",
+tanggal:"2026-08-12",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Aktif Sudah Ditanggapi",
+tanggalDitutup:""
+},
+
+{
+id:26,
+nomor:"UPK-026-08-2026",
+nama:"KSP El dana Manfaat (Yayat Nurhidayat)",
+tanggal:"2026-08-12",
+media:"WA Center",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Perilaku Petugas Penagihan",
+status:"Aktif Belum Ditanggapi",
+tanggalDitutup:""
+},
+
+{
+id:27,
+nomor:"UPK-027-08-2026",
+nama:"Tiara",
+tanggal:"2026-08-12",
+media:"Email",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"Internal",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-08-12"
+},
+
+{
+id:28,
+nomor:"UPK-028-08-2026",
+nama:"Yessi Srishandi",
+tanggal:"2026-08-19",
+media:"APPK",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Fraud Pegawai PUJK atau Kelalaian PUJK",
+status:"Aktif Sudah Ditanggapi",
+tanggalDitutup:""
+},
+
+{
+id:29,
+nomor:"UPK-029-08-2026",
+nama:"Sukmayadi",
+tanggal:"2026-08-20",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Dana Dipersulit atau Ditolak",
+status:"Ditutup",
+tanggalDitutup:"2026-08-20"
+},
+
+{
+id:30,
+nomor:"UPK-030-08-2026",
+nama:"Yayat Nurhidayat",
+tanggal:"2026-08-27",
+media:"APPK",
+produk:"Pembiayaan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Perilaku Petugas Penagihan",
+status:"Aktif Belum Ditanggapi",
+tanggalDitutup:""
+},
+
+{
+id:31,
+nomor:"UPK-031-08-2026",
+nama:"Deddy Supriyadi, SE.M.SC",
+tanggal:"2026-08-30",
+media:"APPK",
+produk:"Deposito",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Pencairan Deposito Dipersulit atau Ditolak",
+status:"Aktif Sudah Ditanggapi",
+tanggalDitutup:""
+},
+
+{
+id:32,
+nomor:"UPK-032-08-2026",
+nama:"Yuni Mulyani",
+tanggal:"2026-08-31",
+media:"APPK",
+produk:"Tabungan",
+unitKerja:"Kantor Pusat",
+tujuanPelaporan:"APPK",
+kategori:"Kegagalan atau Keterlambatan Transaksi",
+status:"Aktif Sudah Ditanggapi",
+tanggalDitutup:""
+}
+
+];
+
+
+/* ================================
+STATE
+================================ */
+
+let complaints=[];
+let trash=[];
+let master={};
+let editingId=null;
+
+let charts={
+    monthly:null,
+    status:null,
+    category:null,
+    media:null,
+    product:null
+};
+
+
+/* ================================
+HELPER
+================================ */
+
+function clone(obj){
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function escapeHTML(value){
+
+    return String(value??"")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+function formatDate(date){
+
+    if(!date)return "-";
+
+    const p=String(date).split("-");
+
+    if(p.length!==3)return date;
+
+    return `${p[2]}-${p[1]}-${p[0]}`;
+
+}
+
+function formatRupiah(value){
+
+    if(
+        value===""||
+        value===null||
+        value===undefined
+    ){
+        return "-";
+    }
+
+    return new Intl.NumberFormat(
+        "id-ID",
+        {
+            style:"currency",
+            currency:"IDR",
+            maximumFractionDigits:0
+        }
+    ).format(Number(value));
+
+}
+
+function todayISO(){
+
+    return new Date()
+        .toISOString()
+        .slice(0,10);
+
+}
+
+function showToast(message){
+
+    const toast=
+        document.getElementById("toast");
+
+    toast.textContent=message;
+    toast.classList.add("show");
+
+    setTimeout(
+        ()=>toast.classList.remove("show"),
+        3000
+    );
+
+}
+
+
+/* ================================
+ROLE HELPER
+================================ */
+
+function isMaster(){
+
+    return currentUser &&
+        currentUser.role==="MASTER";
+
+}
+
+
+function isBranchUser(){
+
+    return currentUser &&
+        currentUser.role==="USER";
+
+}
+
+
+/*
+Akun Pusat memiliki akses data seluruh unit,
+tetapi tetap bukan akun MASTER.
+*/
+function isCenterUser(){
+
+    return currentUser &&
+        currentUser.role==="PUSAT";
+
+}
+
+
+function hasAllUnitAccess(){
+
+    return isMaster() || isCenterUser();
+
+}
+
+
+function canAccessMaster(){
+
+    return isMaster();
+
+}
+
+
+function canManageComplaint(item){
+
+    if(hasAllUnitAccess()){
+        return true;
+    }
+
+    if(isBranchUser()){
+        return item &&
+            item.unitKerja===currentUser.unitKerja;
+    }
+
+    return false;
+
+}
+
+
+function getVisibleComplaints(){
+
+    if(hasAllUnitAccess()){
+        return complaints;
+    }
+
+    if(isBranchUser()){
+
+        return complaints.filter(item=>
+            item.unitKerja===currentUser.unitKerja
+        );
+
+    }
+
+    return [];
+
+}
+
+
+function getVisibleTrash(){
+
+    if(hasAllUnitAccess()){
+        return trash;
+    }
+
+    return [];
+
+}
+
+
+/* ================================
+USER STORAGE
+================================ */
+
+function loadUsers(){
+
+    const saved=
+        localStorage.getItem("HIK_USERS");
+
+    if(saved){
+
+        try{
+
+            users=JSON.parse(saved);
+
+            if(!Array.isArray(users)){
+                users=[];
+            }
+
+        }catch{
+
+            users=[];
+
+        }
+
+    }else{
+
+        users=clone(DEFAULT_USERS);
+
+    }
+
+
+    /*
+    Pastikan akun MASTER selalu ada.
+    Tidak menghapus akun cabang yang sudah
+    dibuat sebelumnya.
+    */
+
+    const masterExists=
+        users.some(user=>
+            String(user.login).toLowerCase()===
+            LOGIN_EMAIL.toLowerCase()
+        );
+
+
+    if(!masterExists){
+
+        users.unshift(
+            clone(DEFAULT_USERS[0])
+        );
+
+    }
+
+
+    saveUsers();
+
+}
+
+
+function saveUsers(){
+
+    localStorage.setItem(
+        "HIK_USERS",
+        JSON.stringify(users)
+    );
+
+}
+
+
+function findUser(login,password){
+
+    return users.find(user=>
+        String(user.login||"")
+            .trim()
+            .toLowerCase()===login &&
+        String(user.password||"")===String(password) &&
+        user.active!==false
+    );
+
+}
+
+
+/* ================================
+STORAGE
+================================ */
+
+function loadStorage(){
+
+    const savedComplaints=
+        localStorage.getItem("HIK_COMPLAINTS");
+
+    const savedMaster=
+        localStorage.getItem("HIK_MASTER");
+
+    const savedTrash=
+        localStorage.getItem("HIK_TRASH");
+
+
+    if(savedComplaints){
+
+        try{
+            complaints=JSON.parse(savedComplaints);
+        }catch{
+            complaints=clone(INITIAL_DATA);
+        }
+
+    }else{
+
+        complaints=clone(INITIAL_DATA);
+
+    }
+
+
+    if(savedMaster){
+
+        try{
+            master=JSON.parse(savedMaster);
+        }catch{
+            master=clone(DEFAULT_MASTER);
+        }
+
+    }else{
+
+        master=clone(DEFAULT_MASTER);
+
+    }
+
+
+    if(savedTrash){
+
+        try{
+            trash=JSON.parse(savedTrash);
+
+            if(!Array.isArray(trash)){
+                trash=[];
+            }
+
+        }catch{
+
+            trash=[];
+
+        }
+
+    }else{
+
+        trash=[];
+
+    }
+
+
+    Object.keys(DEFAULT_MASTER)
+    .forEach(function(key){
+
+        if(!Array.isArray(master[key])){
+            master[key]=clone(DEFAULT_MASTER[key]);
+        }
+
+    });
+
+
+    complaints=
+        complaints.map(function(item){
+
+            const newItem={...item};
+
+            delete newItem.tujuan;
+
+
+            if(
+                !newItem.unitKerja &&
+                newItem.cabang
+            ){
+                newItem.unitKerja=newItem.cabang;
+            }
+
+            delete newItem.cabang;
+
+
+            if(!newItem.unitKerja){
+                newItem.unitKerja="Kantor Pusat";
+            }
+
+
+            if(!newItem.tujuanPelaporan){
+
+                newItem.tujuanPelaporan=
+                    newItem.media==="APPK"
+                    ?"APPK"
+                    :"Internal";
+
+            }
+
+
+            if(
+                newItem.status==="Ditutup" &&
+                !newItem.tanggalDitutup
+            ){
+
+                newItem.tanggalDitutup=
+                    newItem.tanggal||"";
+
+            }
+
+
+            if(
+                newItem.status!=="Ditutup"
+            ){
+
+                newItem.tanggalDitutup="";
+
+            }
+
+
+            return newItem;
+
+        });
+
+
+    saveStorage();
+
+}
+
+
+function saveStorage(){
+
+    localStorage.setItem(
+        "HIK_COMPLAINTS",
+        JSON.stringify(complaints)
+    );
+
+    localStorage.setItem(
+        "HIK_MASTER",
+        JSON.stringify(master)
+    );
+
+    localStorage.setItem(
+        "HIK_TRASH",
+        JSON.stringify(trash)
+    );
+
+}
+
+
+/* ================================
+LOGIN
+================================ */
+
+function performLogin(){
+
+    const email=
+        document
+        .getElementById("loginEmail")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const password=
+        document
+        .getElementById("loginPassword")
+        .value;
+
+
+    const user=
+        findUser(
+            email,
+            password
+        );
+
+
+    if(user){
+
+        currentUser=clone(user);
+
+
+        sessionStorage.setItem(
+            "HIK_LOGIN",
+            "true"
+        );
+
+
+        sessionStorage.setItem(
+            "HIK_LOGIN_USER",
+            JSON.stringify(currentUser)
+        );
+
+
+        document
+        .getElementById("loginPage")
+        .style.display="none";
+
+        document
+        .getElementById("app")
+        .style.display="block";
+
+
+        initializeApplication();
+
+    }else{
+
+        document
+        .getElementById("loginError")
+        .style.display="block";
+
+    }
+
+}
+
+
+function logout(){
+
+    sessionStorage.removeItem(
+        "HIK_LOGIN"
+    );
+
+    sessionStorage.removeItem(
+        "HIK_LOGIN_USER"
+    );
+
+    currentUser=null;
+
+    location.reload();
+
+}
+
+
+/* ================================
+UI ROLE
+================================ */
+
+function updateUserInterface(){
+
+    const badge=
+        document.getElementById(
+            "topUserBadge"
+        );
+
+
+    const menuUsers=
+        document.getElementById(
+            "menuUsers"
+        );
+
+
+    const masterMenu=
+        document.querySelector(
+            '.menu-item[data-page="master"]'
+        );
+
+
+    const trashMenu=
+        document.querySelector(
+            '.menu-item[data-page="trash"]'
+        );
+
+
+    if(isMaster()){
+
+        badge.textContent=
+            "Pusat / Master";
+
+        if(menuUsers)
+            menuUsers.style.display="block";
+
+        if(masterMenu)
+            masterMenu.style.display="block";
+
+        if(trashMenu)
+            trashMenu.style.display="block";
+
+        document
+        .getElementById("backupDownloadButton")
+        .style.display="inline-block";
+
+        document
+        .getElementById("restoreBackupLabel")
+        .style.display="inline-block";
+
+    }else if(isCenterUser()){
+
+        badge.textContent=
+            (currentUser.name||"Kantor Pusat")+
+            " / Pusat";
+
+        if(menuUsers)
+            menuUsers.style.display="none";
+
+        if(masterMenu)
+            masterMenu.style.display="none";
+
+        if(trashMenu)
+            trashMenu.style.display="block";
+
+        document
+        .getElementById("backupDownloadButton")
+        .style.display="none";
+
+        document
+        .getElementById("restoreBackupLabel")
+        .style.display="none";
+
+    }else{
+
+        badge.textContent=
+            (currentUser.name||currentUser.unitKerja)+
+            " / User";
+
+        if(menuUsers)
+            menuUsers.style.display="none";
+
+        if(masterMenu)
+            masterMenu.style.display="none";
+
+        if(trashMenu)
+            trashMenu.style.display="none";
+
+        document
+        .getElementById("backupDownloadButton")
+        .style.display="none";
+
+        document
+        .getElementById("restoreBackupLabel")
+        .style.display="none";
+
+    }
+
+}
+
+
+/* ================================
+NAVIGATION
+================================ */
+
+function showPage(
+    pageName,
+    clickedMenu
+){
+
+    /*
+    Proteksi halaman Master,
+    Sampah dan Manajemen Akun.
+    */
+
+    if(
+        (
+            pageName==="master" ||
+            pageName==="users"
+        ) &&
+        !isMaster()
+    ){
+
+        alert(
+            "Akses hanya tersedia untuk Pusat / Master."
+        );
+
+        return;
+
+    }
+
+
+    document
+    .querySelectorAll(".page")
+    .forEach(page=>
+        page.classList.remove("active")
+    );
+
+
+    const target=
+        document.getElementById(
+            "page-"+pageName
+        );
+
+
+    if(target){
+        target.classList.add("active");
+    }
+
+
+    document
+    .querySelectorAll(".menu-item")
+    .forEach(item=>
+        item.classList.remove("active")
+    );
+
+
+    if(clickedMenu){
+
+        clickedMenu.classList.add("active");
+
+    }else{
+
+        const menu=
+            document.querySelector(
+                `.menu-item[data-page="${pageName}"]`
+            );
+
+        if(menu){
+            menu.classList.add("active");
+        }
+
+    }
+
+
+    if(pageName==="dashboard")
+        renderDashboard();
+
+    if(pageName==="data")
+        renderTable();
+
+    if(pageName==="master")
+        renderMaster();
+
+    if(pageName==="trash")
+        renderTrash();
+
+    if(pageName==="backup")
+        updateBackupCount();
+
+    if(pageName==="users")
+        renderUsers();
+
+}
+
+
+/* ================================
+SELECT
+================================ */
+
+function populateSelect(
+    id,
+    values,
+    firstText
+){
+
+    const select=
+        document.getElementById(id);
+
+    if(!select)return;
+
+
+    const oldValue=select.value;
+
+
+    select.innerHTML=
+        `<option value="">${escapeHTML(firstText)}</option>`;
+
+
+    values.forEach(function(value){
+
+        const option=
+            document.createElement("option");
+
+        option.value=value;
+        option.textContent=value;
+
+        select.appendChild(option);
+
+    });
+
+
+    if(values.includes(oldValue)){
+        select.value=oldValue;
+    }
+
+}
+
+
+function populateAll(){
+
+    populateSelect(
+        "formMedia",
+        master.media,
+        "Pilih Media"
+    );
+
+    populateSelect(
+        "formProduk",
+        master.produk,
+        "Pilih Produk"
+    );
+
+    populateSelect(
+        "formTujuan",
+        master.tujuanPelaporan,
+        "Pilih Tujuan Pelaporan"
+    );
+
+    populateSelect(
+        "formKategori",
+        master.kategori,
+        "Pilih Kategori"
+    );
+
+    populateSelect(
+        "formStatus",
+        master.status,
+        "Pilih Status"
+    );
+
+
+    /*
+    Untuk MASTER: semua unit.
+    Untuk CABANG: unit dikunci ke unit sendiri.
+    */
+
+    if(hasAllUnitAccess()){
+
+        populateSelect(
+            "formUnitKerja",
+            master.unitKerja,
+            "Pilih Unit Kerja"
+        );
+
+    }else if(isBranchUser()){
+
+        const select=
+            document.getElementById(
+                "formUnitKerja"
+            );
+
+        select.innerHTML="";
+
+        const option=
+            document.createElement("option");
+
+        option.value=currentUser.unitKerja;
+        option.textContent=currentUser.unitKerja;
+
+        select.appendChild(option);
+
+        select.value=currentUser.unitKerja;
+
+    }
+
+
+    populateSelect(
+        "dashboardProduct",
+        master.produk,
+        "Semua Produk"
+    );
+
+    populateSelect(
+        "dashboardTujuan",
+        master.tujuanPelaporan,
+        "Semua Tujuan Pelaporan"
+    );
+
+    populateSelect(
+        "dashboardStatus",
+        master.status,
+        "Semua Status"
+    );
+
+
+    populateSelect(
+        "dataProduct",
+        master.produk,
+        "Semua Produk"
+    );
+
+    populateSelect(
+        "dataTujuan",
+        master.tujuanPelaporan,
+        "Semua Tujuan Pelaporan"
+    );
+
+    populateSelect(
+        "dataStatus",
+        master.status,
+        "Semua Status"
+    );
+
+
+    populateYears();
+
+
+    populateUserUnit();
+
+}
+
+
+function populateYears(){
+
+    const source=
+        getVisibleComplaints();
+
+
+    const years=[
+        ...new Set(
+            source
+            .map(item=>
+                item.tanggal
+                ?item.tanggal.slice(0,4)
+                :""
+            )
+            .filter(Boolean)
+        )
+    ]
+    .sort()
+    .reverse();
+
+
+    const select=
+        document.getElementById(
+            "dashboardYear"
+        );
+
+
+    const oldValue=select.value;
+
+
+    select.innerHTML=
+        `<option value="">Semua Tahun</option>`;
+
+
+    years.forEach(function(year){
+
+        const option=
+            document.createElement("option");
+
+        option.value=year;
+        option.textContent=year;
+
+        select.appendChild(option);
+
+    });
+
+
+    if(years.includes(oldValue)){
+        select.value=oldValue;
+    }
+
+}
+
+
+/* ================================
+REGISTRATION
+================================ */
+
+function getNextRegistration(date){
+
+    if(!date)return "";
+
+
+    const dateObj=
+        new Date(date+"T00:00:00");
+
+
+    const month=
+        String(
+            dateObj.getMonth()+1
+        ).padStart(2,"0");
+
+
+    const year=
+        dateObj.getFullYear();
+
+
+    let maxNumber=0;
+
+
+    complaints.forEach(function(item){
+
+        const match=
+            String(item.nomor||"")
+            .match(
+                /^UPK-(\d+)-\d{2}-(\d{4})$/
+            );
+
+
+        if(match){
+
+            const number=
+                Number(match[1]);
+
+            const itemYear=
+                Number(match[2]);
+
+
+            if(
+                itemYear===year &&
+                number>maxNumber
+            ){
+
+                maxNumber=number;
+
+            }
+
+        }
+
+    });
+
+
+    return `UPK-${String(
+        maxNumber+1
+    ).padStart(3,"0")}-${month}-${year}`;
+
+}
+
+
+function updatePreviewNumber(){
+
+    if(editingId!==null){
+
+        const existing=
+            complaints.find(item=>
+                Number(item.id)===
+                Number(editingId)
+            );
+
+
+        if(existing){
+
+            document
+            .getElementById(
+                "registrationPreview"
+            )
+            .textContent=
+                existing.nomor;
+
+            return;
+
+        }
+
+    }
+
+
+    const date=
+        document
+        .getElementById("formTanggal")
+        .value;
+
+
+    document
+    .getElementById(
+        "registrationPreview"
+    )
+    .textContent=
+        date
+        ?getNextRegistration(date)
+        :"Otomatis";
+
+}
+
+
+/* ================================
+STATUS
+================================ */
+
+function handleStatusChange(){
+
+    const status=
+        document
+        .getElementById("formStatus")
+        .value;
+
+    const tanggalDitutup=
+        document
+        .getElementById(
+            "formTanggalDitutup"
+        );
+
+
+    if(status==="Ditutup"){
+
+        if(!tanggalDitutup.value){
+            tanggalDitutup.value=todayISO();
+        }
+
+        tanggalDitutup.required=true;
+
+    }else{
+
+        tanggalDitutup.value="";
+        tanggalDitutup.required=false;
+
+    }
+
+}
+
+
+/* ================================
+FORM
+================================ */
+
+function resetForm(){
+
+    document
+    .getElementById("complaintForm")
+    .reset();
+
+    editingId=null;
+
+    document
+    .getElementById("editId")
+    .value="";
+
+    document
+    .getElementById("formTitle")
+    .textContent="Tambah Pengaduan";
+
+    document
+    .getElementById("formTanggal")
+    .value=todayISO();
+
+    document
+    .getElementById("formTanggalDitutup")
+    .value="";
+
+
+    if(isBranchUser()){
+
+        const unit=
+            document.getElementById(
+                "formUnitKerja"
+            );
+
+        unit.value=
+            currentUser.unitKerja;
+
+    }
+
+
+    updatePreviewNumber();
+
+}
+
+
+function startAdd(){
+
+    resetForm();
+
+    showPage("form");
+
+}
+
+
+/* ================================
+SAVE
+================================ */
+
+function saveComplaint(event){
+
+    event.preventDefault();
+
+
+    const hiddenId=
+        document
+        .getElementById("editId")
+        .value;
+
+
+    const isEdit=
+        hiddenId!=="";
+
+
+    let existing=null;
+
+
+    if(isEdit){
+
+        existing=
+            complaints.find(item=>
+                String(item.id)===String(hiddenId)
+            );
+
+        if(!existing){
+            alert("Data tidak ditemukan.");
+            return;
+        }
+
+
+        if(!canManageComplaint(existing)){
+
+            alert(
+                "Anda tidak memiliki hak untuk mengubah data unit kerja lain."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    const status=
+        document
+        .getElementById("formStatus")
+        .value;
+
+
+    let tanggalDitutup=
+        document
+        .getElementById("formTanggalDitutup")
+        .value;
+
+
+    if(
+        status==="Ditutup" &&
+        !tanggalDitutup
+    ){
+
+        tanggalDitutup=todayISO();
+
+    }
+
+
+    if(status!=="Ditutup"){
+        tanggalDitutup="";
+    }
+
+
+    const tanggal=
+        document
+        .getElementById("formTanggal")
+        .value;
+
+
+    const nomor=
+        isEdit
+        ?existing.nomor
+        :getNextRegistration(tanggal);
+
+
+    const fileInput=
+        document
+        .getElementById("formDokumen");
+
+
+    let documents=[];
+
+
+    if(fileInput&&fileInput.files){
+
+        Array.from(fileInput.files)
+        .forEach(file=>
+            documents.push(file.name)
+        );
+
+    }
+
+
+    if(
+        isEdit &&
+        documents.length===0
+    ){
+
+        documents=existing.dokumen||[];
+
+    }
+
+
+    /*
+    UNIT KERJA:
+    MASTER boleh memilih.
+    USER CABANG selalu dipaksa
+    ke unitnya sendiri.
+    */
+
+    let unitKerja=
+        document
+        .getElementById("formUnitKerja")
+        .value;
+
+
+    if(isBranchUser()){
+
+        unitKerja=
+            currentUser.unitKerja;
+
+    }
+
+
+    const complaint={
+
+        id:
+            isEdit
+            ?Number(hiddenId)
+            :Date.now(),
+
+        nomor,
+
+        tanggal,
+
+        tanggalDitutup,
+
+        petugas:
+            document
+            .getElementById("formPetugas")
+            .value.trim(),
+
+        unitKerja,
+
+        media:
+            document
+            .getElementById("formMedia")
+            .value,
+
+        produk:
+            document
+            .getElementById("formProduk")
+            .value,
+
+        tujuanPelaporan:
+            document
+            .getElementById("formTujuan")
+            .value,
+
+        kategori:
+            document
+            .getElementById("formKategori")
+            .value,
+
+        status,
+
+        nama:
+            document
+            .getElementById("formNama")
+            .value.trim(),
+
+        jenisIdentitas:
+            document
+            .getElementById("formJenisIdentitas")
+            .value,
+
+        nomorIdentitas:
+            document
+            .getElementById("formNomorIdentitas")
+            .value.trim(),
+
+        noHp:
+            document
+            .getElementById("formNoHp")
+            .value.trim(),
+
+        email:
+            document
+            .getElementById("formEmail")
+            .value.trim(),
+
+        kuasa:
+            document
+            .getElementById("formKuasa")
+            .value.trim(),
+
+        alamat:
+            document
+            .getElementById("formAlamat")
+            .value.trim(),
+
+        kronologi:
+            document
+            .getElementById("formKronologi")
+            .value.trim(),
+
+        kerugian:
+            document
+            .getElementById("formKerugian")
+            .value,
+
+        dokumen:documents,
+
+        penyelesaian:
+            document
+            .getElementById("formPenyelesaian")
+            .value.trim(),
+
+        keberatan:
+            document
+            .getElementById("formKeberatan")
+            .value.trim(),
+
+        penyelesaianKeberatan:
+            document
+            .getElementById(
+                "formPenyelesaianKeberatan"
+            )
+            .value.trim()
+
+    };
+
+
+    if(isEdit){
+
+        const index=
+            complaints.findIndex(item=>
+                String(item.id)===String(hiddenId)
+            );
+
+
+        complaints[index]=complaint;
+
+        showToast(
+            "Data pengaduan berhasil diperbarui."
+        );
+
+    }else{
+
+        complaints.push(complaint);
+
+        showToast(
+            "Data berhasil ditambahkan: "+
+            complaint.nomor
+        );
+
+    }
+
+
+    saveStorage();
+
+    populateAll();
+    renderTable();
+    renderDashboard();
+
+    resetForm();
+
+    showPage("data");
+
+}
+
+
+/* ================================
+EDIT
+================================ */
+
+function editComplaint(id){
+
+    const item=
+        complaints.find(complaint=>
+            Number(complaint.id)===Number(id)
+        );
+
+
+    if(!item){
+        alert("Data pengaduan tidak ditemukan.");
+        return;
+    }
+
+
+    if(!canManageComplaint(item)){
+
+        alert(
+            "Anda tidak memiliki hak untuk mengedit data unit kerja lain."
+        );
+
+        return;
+
+    }
+
+
+    editingId=Number(item.id);
+
+
+    document
+    .getElementById("editId")
+    .value=item.id;
+
+
+    showPage("form");
+
+
+    document
+    .getElementById("formTitle")
+    .textContent="Edit Pengaduan";
+
+
+    setField("formTanggal",item.tanggal);
+    setField("formTanggalDitutup",item.tanggalDitutup);
+    setField("formPetugas",item.petugas);
+    setField("formUnitKerja",item.unitKerja);
+    setField("formMedia",item.media);
+    setField("formProduk",item.produk);
+    setField("formTujuan",item.tujuanPelaporan);
+    setField("formKategori",item.kategori);
+    setField("formStatus",item.status);
+    setField("formNama",item.nama);
+    setField("formJenisIdentitas",item.jenisIdentitas);
+    setField("formNomorIdentitas",item.nomorIdentitas);
+    setField("formNoHp",item.noHp);
+    setField("formEmail",item.email);
+    setField("formKuasa",item.kuasa);
+    setField("formAlamat",item.alamat);
+    setField("formKronologi",item.kronologi);
+    setField("formKerugian",item.kerugian);
+    setField("formPenyelesaian",item.penyelesaian);
+    setField("formKeberatan",item.keberatan);
+    setField(
+        "formPenyelesaianKeberatan",
+        item.penyelesaianKeberatan
+    );
+
+
+    if(isBranchUser()){
+
+        setField(
+            "formUnitKerja",
+            currentUser.unitKerja
+        );
+
+    }
+
+
+    document
+    .getElementById("formTanggalDitutup")
+    .required=
+        item.status==="Ditutup";
+
+
+    updatePreviewNumber();
+
+}
+
+
+function setField(id,value){
+
+    const element=
+        document.getElementById(id);
+
+    if(element){
+        element.value=value??"";
+    }
+
+}
+
+
+function cancelForm(){
+
+    resetForm();
+
+    showPage("data");
+
+}
+
+
+/* ================================
+DELETE → SAMPAH
+================================ */
+
+function deleteComplaint(id){
+
+    const item=
+        complaints.find(complaint=>
+            Number(complaint.id)===Number(id)
+        );
+
+
+    if(!item)return;
+
+
+    if(!canManageComplaint(item)){
+
+        alert(
+            "Anda tidak memiliki hak untuk menghapus data unit kerja lain."
+        );
+
+        return;
+
+    }
+
+
+    if(!confirm(
+        "Apakah data "+item.nomor+
+        " ingin dipindahkan ke Sampah?"
+    )){
+        return;
+    }
+
+
+    const deletedItem={
+        ...clone(item),
+
+        deletedAt:
+            new Date().toISOString(),
+
+        deletedBy:
+            currentUser
+            ?currentUser.login
+            :LOGIN_EMAIL
+
+    };
+
+
+    trash.push(deletedItem);
+
+
+    complaints=
+        complaints.filter(complaint=>
+            Number(complaint.id)!==Number(id)
+        );
+
+
+    saveStorage();
+
+    renderTable();
+    renderDashboard();
+    renderTrash();
+    updateBackupCount();
+
+    showToast(
+        "Data dipindahkan ke Sampah."
+    );
+
+}
+
+
+/* ================================
+TRASH
+================================ */
+
+function renderTrash(){
+
+    if(!hasAllUnitAccess())return;
+
+
+    const tbody=
+        document.getElementById(
+            "trashTableBody"
+        );
+
+    if(!tbody)return;
+
+
+    tbody.innerHTML="";
+
+
+    const sortedTrash=
+        [...trash].sort(
+            (a,b)=>
+                new Date(b.deletedAt||0)-
+                new Date(a.deletedAt||0)
+        );
+
+
+    if(sortedTrash.length===0){
+
+        tbody.innerHTML=`
+
+            <tr>
+
+                <td
+                    colspan="13"
+                    style="
+                        text-align:center;
+                        padding:25px;
+                        color:#6b7280;
+                    "
+                >
+                    Sampah kosong.
+                </td>
+
+            </tr>
+
+        `;
+
+    }else{
+
+        sortedTrash.forEach(function(item){
+
+            const row=
+                document.createElement("tr");
+
+
+            const deletedDate=
+                item.deletedAt
+                ?new Date(item.deletedAt)
+                    .toLocaleString("id-ID")
+                :"";
+
+
+            row.innerHTML=`
+
+                <td>
+                    <b>${escapeHTML(item.nomor)}</b>
+                </td>
+
+                <td>
+                    ${escapeHTML(item.nama||"-")}
+                </td>
+
+                <td>
+                    ${formatDate(item.tanggal)}
+                </td>
+
+                <td>
+                    ${
+                        item.status==="Ditutup"
+                        ?formatDate(item.tanggalDitutup)
+                        :"-"
+                    }
+                </td>
+
+                <td>
+                    ${escapeHTML(item.petugas||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.unitKerja||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.media||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.produk||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.tujuanPelaporan||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.kategori||"-")}
+                </td>
+
+                <td>
+                    ${statusBadge(item.status)}
+                </td>
+
+                <td>
+                    ${escapeHTML(deletedDate)}
+                </td>
+
+                <td>
+
+                    <div class="button-group">
+
+                        <button
+                            class="btn-restore"
+                            onclick="restoreTrash(${item.id})">
+                            ♻️ Pulihkan
+                        </button>
+
+                        <button
+                            class="btn-permanent"
+                            onclick="permanentDeleteTrash(${item.id})">
+                            Hapus Permanen
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            tbody.appendChild(row);
+
+        });
+
+    }
+
+
+    document
+    .getElementById("trashCount")
+    .textContent=trash.length;
+
+
+    document
+    .getElementById("trashTableCount")
+    .textContent=trash.length;
+
+}
+
+
+function restoreTrash(id){
+
+    if(!hasAllUnitAccess()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const index=
+        trash.findIndex(item=>
+            Number(item.id)===Number(id)
+        );
+
+
+    if(index===-1){
+
+        alert("Data di Sampah tidak ditemukan.");
+
+        return;
+
+    }
+
+
+    const item=
+        trash[index];
+
+
+    if(
+        complaints.some(existing=>
+            Number(existing.id)===Number(item.id)
+        )
+    ){
+
+        alert(
+            "Data dengan ID tersebut sudah ada di Data Pengaduan."
+        );
+
+        return;
+
+    }
+
+
+    if(!confirm(
+        "Pulihkan data "+item.nomor+" ke Data Pengaduan?"
+    )){
+        return;
+    }
+
+
+    const restored={
+        ...clone(item)
+    };
+
+
+    delete restored.deletedAt;
+    delete restored.deletedBy;
+
+
+    complaints.push(restored);
+
+
+    trash.splice(index,1);
+
+
+    saveStorage();
+
+    populateAll();
+    renderTable();
+    renderDashboard();
+    renderTrash();
+    updateBackupCount();
+
+    showToast(
+        "Data berhasil dipulihkan."
+    );
+
+}
+
+
+function restoreAllTrash(){
+
+    if(!hasAllUnitAccess()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    if(trash.length===0){
+
+        alert("Sampah kosong.");
+
+        return;
+
+    }
+
+
+    if(!confirm(
+        "Pulihkan seluruh data dari Sampah?"
+    )){
+        return;
+    }
+
+
+    const restoredItems=[];
+
+
+    trash.forEach(function(item){
+
+        const exists=
+            complaints.some(existing=>
+                Number(existing.id)===Number(item.id)
+            );
+
+
+        if(!exists){
+
+            const restored={
+                ...clone(item)
+            };
+
+            delete restored.deletedAt;
+            delete restored.deletedBy;
+
+            restoredItems.push(restored);
+
+        }
+
+    });
+
+
+    complaints=
+        complaints.concat(restoredItems);
+
+
+    trash=[];
+
+
+    saveStorage();
+
+    populateAll();
+    renderTable();
+    renderDashboard();
+    renderTrash();
+    updateBackupCount();
+
+    showToast(
+        restoredItems.length+
+        " data berhasil dipulihkan."
+    );
+
+}
+
+
+function permanentDeleteTrash(id){
+
+    if(!hasAllUnitAccess()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const item=
+        trash.find(item=>
+            Number(item.id)===Number(id)
+        );
+
+
+    if(!item)return;
+
+
+    if(!confirm(
+        "PERINGATAN!\n\n"+
+        "Data "+item.nomor+
+        " akan dihapus PERMANEN dan tidak dapat dipulihkan.\n\n"+
+        "Lanjutkan?"
+    )){
+        return;
+    }
+
+
+    trash=
+        trash.filter(item=>
+            Number(item.id)!==Number(id)
+        );
+
+
+    saveStorage();
+
+    renderTrash();
+    updateBackupCount();
+
+    showToast(
+        "Data dihapus permanen."
+    );
+
+}
+
+
+function emptyTrash(){
+
+    if(!hasAllUnitAccess()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    if(trash.length===0){
+
+        alert("Sampah sudah kosong.");
+
+        return;
+
+    }
+
+
+    if(!confirm(
+        "PERINGATAN!\n\n"+
+        "Semua data di Sampah akan dihapus PERMANEN.\n"+
+        "Data tidak dapat dipulihkan lagi.\n\n"+
+        "Lanjutkan?"
+    )){
+        return;
+    }
+
+
+    const jumlah=trash.length;
+
+
+    trash=[];
+
+
+    saveStorage();
+
+    renderTrash();
+    updateBackupCount();
+
+    showToast(
+        jumlah+
+        " data telah dihapus permanen."
+    );
+
+}
+
+
+/* ================================
+TABLE
+================================ */
+
+function renderTable(){
+
+    const search=
+        (
+            document.getElementById(
+                "dataSearch"
+            )?.value||""
+        ).toLowerCase();
+
+
+    const month=
+        document.getElementById(
+            "dataMonth"
+        )?.value||"";
+
+
+    const product=
+        document.getElementById(
+            "dataProduct"
+        )?.value||"";
+
+
+    const tujuan=
+        document.getElementById(
+            "dataTujuan"
+        )?.value||"";
+
+
+    const status=
+        document.getElementById(
+            "dataStatus"
+        )?.value||"";
+
+
+    const filtered=
+        getVisibleComplaints()
+        .filter(function(item){
+
+            const text=[
+
+                item.nomor,
+                item.nama,
+                item.email,
+                item.noHp,
+                item.produk,
+                item.unitKerja,
+                item.kategori,
+                item.tujuanPelaporan
+
+            ]
+            .join(" ")
+            .toLowerCase();
+
+
+            return(
+
+                (!search||text.includes(search))&&
+
+                (!month||
+                    String(item.tanggal||"")
+                    .slice(5,7)===month)&&
+
+                (!product||
+                    item.produk===product)&&
+
+                (!tujuan||
+                    item.tujuanPelaporan===tujuan)&&
+
+                (!status||
+                    item.status===status)
+
+            );
+
+        })
+        .sort((a,b)=>
+            new Date(b.tanggal||0)-
+            new Date(a.tanggal||0)
+        );
+
+
+    const tbody=
+        document.getElementById(
+            "tableBody"
+        );
+
+
+    tbody.innerHTML="";
+
+
+    if(filtered.length===0){
+
+        tbody.innerHTML=`
+
+            <tr>
+
+                <td
+                    colspan="12"
+                    style="
+                        text-align:center;
+                        padding:25px;
+                        color:#6b7280;
+                    "
+                >
+                    Tidak ada data pengaduan.
+                </td>
+
+            </tr>
+
+        `;
+
+    }else{
+
+        filtered.forEach(function(item){
+
+            const row=
+                document.createElement("tr");
+
+
+            row.innerHTML=`
+
+                <td>
+                    <b>${escapeHTML(item.nomor)}</b>
+                </td>
+
+                <td>
+
+                    <span
+                        class="name-link"
+                        onclick="showDetail(${item.id})">
+
+                        ${escapeHTML(item.nama||"-")}
+
+                    </span>
+
+                </td>
+
+                <td>
+                    ${formatDate(item.tanggal)}
+                </td>
+
+                <td>
+                    ${
+                        item.status==="Ditutup"
+                        ?formatDate(item.tanggalDitutup)
+                        :"-"
+                    }
+                </td>
+
+                <td>
+                    ${escapeHTML(item.petugas||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.unitKerja||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.media||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.produk||"-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        item.tujuanPelaporan||"-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(item.kategori||"-")}
+                </td>
+
+                <td>
+                    ${statusBadge(item.status)}
+                </td>
+
+                <td>
+
+                    <div class="button-group">
+
+                        <button
+                            class="btn-primary"
+                            onclick="showDetail(${item.id})">
+                            Detail
+                        </button>
+
+                        <button
+                            class="btn-warning"
+                            onclick="editComplaint(${item.id})">
+                            Edit
+                        </button>
+
+                        <button
+                            class="btn-danger"
+                            onclick="deleteComplaint(${item.id})">
+                            Hapus
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            tbody.appendChild(row);
+
+        });
+
+    }
+
+
+    document
+    .getElementById("tableCount")
+    .textContent=filtered.length;
+
+
+    updateBackupCount();
+
+}
+
+
+function statusBadge(status){
+
+    let className="status-blue";
+
+
+    if(
+        status==="Ditutup"||
+        status==="Selesai"
+    ){
+
+        className="status-green";
+
+    }else if(
+        status==="Dalam Proses"||
+        status==="Belum Selesai"
+    ){
+
+        className="status-yellow";
+
+    }else if(
+        status==="Aktif Belum Ditanggapi"
+    ){
+
+        className="status-red";
+
+    }
+
+
+    return`
+
+        <span
+            class="status-badge ${className}">
+            ${escapeHTML(status||"-")}
+        </span>
+
+    `;
+
+}
+
+
+/* ================================
+DETAIL
+================================ */
+
+function showDetail(id){
+
+    const item=
+        complaints.find(complaint=>
+            Number(complaint.id)===Number(id)
+        );
+
+
+    if(!item)return;
+
+
+    if(
+        isBranchUser() &&
+        item.unitKerja!==currentUser.unitKerja
+    ){
+
+        alert(
+            "Anda tidak memiliki akses ke data unit kerja lain."
+        );
+
+        return;
+
+    }
+
+
+    document
+    .getElementById("detailContent")
+    .innerHTML=`
+
+        <div class="detail-highlight">
+
+            <strong>
+                ${escapeHTML(item.nama||"-")}
+            </strong>
+
+            <div
+                style="
+                    margin-top:4px;
+                    color:#4b5563;
+                    font-size:10px;
+                "
+            >
+
+                ${escapeHTML(item.nomor||"-")}
+                &nbsp; | &nbsp;
+                ${formatDate(item.tanggal)}
+
+            </div>
+
+        </div>
+
+
+        <div class="detail-grid">
+
+            ${detailItem("No Registrasi",item.nomor)}
+
+            ${detailItem(
+                "Tanggal Pengaduan",
+                formatDate(item.tanggal)
+            )}
+
+            ${detailItem(
+                "Tanggal Ditutup",
+                item.status==="Ditutup"
+                ?formatDate(item.tanggalDitutup)
+                :"-"
+            )}
+
+            ${detailItem(
+                "Nama Petugas Input",
+                item.petugas
+            )}
+
+            ${detailItem(
+                "Unit Kerja",
+                item.unitKerja
+            )}
+
+            ${detailItem(
+                "Media Pengaduan",
+                item.media
+            )}
+
+            ${detailItem(
+                "Produk",
+                item.produk
+            )}
+
+            ${detailItem(
+                "Tujuan Pelaporan",
+                item.tujuanPelaporan
+            )}
+
+            ${detailItem(
+                "Kategori Permasalahan",
+                item.kategori
+            )}
+
+            ${detailItem(
+                "Status",
+                item.status
+            )}
+
+            ${detailItem(
+                "Nama Pelapor",
+                item.nama
+            )}
+
+            ${detailItem(
+                "Jenis Identitas",
+                item.jenisIdentitas
+            )}
+
+            ${detailItem(
+                "Nomor Identitas",
+                item.nomorIdentitas
+            )}
+
+            ${detailItem(
+                "Nomor Handphone",
+                item.noHp
+            )}
+
+            ${detailItem(
+                "Email",
+                item.email
+            )}
+
+            ${detailItem(
+                "Nama Kuasa / Pengacara",
+                item.kuasa
+            )}
+
+            ${detailItem(
+                "Alamat",
+                item.alamat,
+                true
+            )}
+
+            ${detailItem(
+                "Kronologi Pengaduan",
+                item.kronologi,
+                true
+            )}
+
+            ${detailItem(
+                "Nilai Kerugian",
+                formatRupiah(item.kerugian)
+            )}
+
+            ${detailItem(
+                "Dokumen Pendukung",
+                item.dokumen&&item.dokumen.length
+                ?item.dokumen.join("\\n")
+                :"-",
+                true
+            )}
+
+            ${detailItem(
+                "Penyelesaian / Tanggapan Bank",
+                item.penyelesaian,
+                true
+            )}
+
+            ${detailItem(
+                "Keberatan terhadap Penyelesaian",
+                item.keberatan,
+                true
+            )}
+
+            ${detailItem(
+                "Penyelesaian atas Keberatan",
+                item.penyelesaianKeberatan,
+                true
+            )}
+
+        </div>
+
+
+        <br>
+
+
+        <div class="button-group">
+
+            <button
+                class="btn-warning"
+                onclick="
+                    closeDetail();
+                    editComplaint(${item.id});
+                "
+            >
+                Edit Data
+            </button>
+
+            <button
+                class="btn-secondary"
+                onclick="closeDetail()"
+            >
+                Tutup
+            </button>
+
+        </div>
+
+    `;
+
+
+    document
+    .getElementById("detailModal")
+    .classList.add("show");
+
+}
+
+
+function detailItem(
+    label,
+    value,
+    full=false
+){
+
+    return`
+
+        <div
+            class="detail-item ${full?"full":""}"
+        >
+
+            <small>
+                ${escapeHTML(label)}
+            </small>
+
+            <div>
+                ${escapeHTML(
+                    value===undefined||
+                    value===null||
+                    value===""
+                    ?"-"
+                    :String(value)
+                )}
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+function closeDetail(){
+
+    document
+    .getElementById("detailModal")
+    .classList.remove("show");
+
+}
+
+
+/* ================================
+DASHBOARD
+================================ */
+
+function getDashboardData(){
+
+    const year=
+        document
+        .getElementById("dashboardYear")
+        .value;
+
+    const month=
+        document
+        .getElementById("dashboardMonth")
+        .value;
+
+    const product=
+        document
+        .getElementById("dashboardProduct")
+        .value;
+
+    const tujuan=
+        document
+        .getElementById("dashboardTujuan")
+        .value;
+
+    const status=
+        document
+        .getElementById("dashboardStatus")
+        .value;
+
+
+    return getVisibleComplaints().filter(item=>{
+
+        const date=item.tanggal||"";
+
+
+        return(
+
+            (!year||
+                date.slice(0,4)===year)&&
+
+            (!month||
+                date.slice(5,7)===month)&&
+
+            (!product||
+                item.produk===product)&&
+
+            (!tujuan||
+                item.tujuanPelaporan===tujuan)&&
+
+            (!status||
+                item.status===status)
+
+        );
+
+    });
+
+}
+
+
+function groupBy(array,key){
+
+    const result={};
+
+
+    array.forEach(item=>{
+
+        const value=
+            item[key]||"Tidak Diisi";
+
+        result[value]=
+            (result[value]||0)+1;
+
+    });
+
+
+    return result;
+
+}
+
+
+function renderDashboard(){
+
+    const filtered=
+        getDashboardData();
+
+
+    document
+    .getElementById("cardTotal")
+    .textContent=filtered.length;
+
+
+    const activeCount=
+        filtered.filter(item=>
+            !["Ditutup","Selesai"]
+            .includes(item.status)
+        ).length;
+
+
+    const closedCount=
+        filtered.filter(item=>
+            ["Ditutup","Selesai"]
+            .includes(item.status)
+        ).length;
+
+
+    const categoryCount=
+        new Set(
+            filtered.map(item=>item.kategori)
+        ).size;
+
+
+    document
+    .getElementById("cardAktif")
+    .textContent=activeCount;
+
+
+    document
+    .getElementById("cardDitutup")
+    .textContent=closedCount;
+
+
+    document
+    .getElementById("cardKategori")
+    .textContent=categoryCount;
+
+
+    renderDestination(filtered);
+
+    renderCharts(filtered);
+
+}
+
+
+function renderDestination(filtered){
+
+    const grouped=
+        groupBy(
+            filtered,
+            "tujuanPelaporan"
+        );
+
+
+    const total=filtered.length;
+
+
+    const container=
+        document.getElementById(
+            "destinationGrid"
+        );
+
+
+    const entries=
+        Object.entries(grouped)
+        .sort((a,b)=>b[1]-a[1]);
+
+
+    if(entries.length===0){
+
+        container.innerHTML=`
+
+            <div
+                style="
+                    grid-column:1/-1;
+                    text-align:center;
+                    padding:20px;
+                    color:#6b7280;
+                "
+            >
+                Tidak ada data.
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML=
+        entries.map(
+            ([name,count])=>{
+
+                const percent=
+                    total
+                    ?((count/total)*100)
+                        .toFixed(1)
+                    :0;
+
+
+                return`
+
+                    <div class="destination-card">
+
+                        <div class="destination-name">
+                            ${escapeHTML(name)}
+                        </div>
+
+                        <div class="destination-count">
+                            ${count}
+                        </div>
+
+                        <div class="destination-percent">
+                            ${percent}% dari total
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
+
+}
+
+
+/* ================================
+CHART
+================================ */
+
+function destroyCharts(){
+
+    Object.keys(charts)
+    .forEach(key=>{
+
+        if(charts[key]){
+
+            charts[key].destroy();
+
+            charts[key]=null;
+
+        }
+
+    });
+
+}
+
+
+function renderCharts(filtered){
+
+    destroyCharts();
+
+
+    if(typeof Chart==="undefined"){
+        return;
+    }
+
+
+    const months=[
+
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember"
+
+    ];
+
+
+    const monthlyData=
+        months.map(
+            (_,index)=>{
+
+                const monthNumber=
+                    String(index+1)
+                    .padStart(2,"0");
+
+
+                return filtered.filter(item=>
+                    String(item.tanggal||"")
+                    .slice(5,7)===monthNumber
+                ).length;
+
+            }
+        );
+
+
+    const status=
+        groupBy(filtered,"status");
+
+    const category=
+        groupBy(filtered,"kategori");
+
+    const media=
+        groupBy(filtered,"media");
+
+    const product=
+        groupBy(filtered,"produk");
+
+
+    charts.monthly=
+        new Chart(
+            document.getElementById(
+                "monthlyChart"
+            ),
+            {
+
+                type:"line",
+
+                data:{
+                    labels:months,
+
+                    datasets:[{
+
+                        label:"Jumlah Pengaduan",
+
+                        data:monthlyData,
+
+                        tension:.25,
+
+                        fill:false
+
+                    }]
+                },
+
+                options:{
+
+                    responsive:true,
+
+                    maintainAspectRatio:false,
+
+                    scales:{
+
+                        y:{
+
+                            beginAtZero:true,
+
+                            ticks:{
+                                precision:0,
+                                font:{size:9}
+                            }
+
+                        },
+
+                        x:{
+
+                            ticks:{
+                                font:{size:9}
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    charts.status=
+        new Chart(
+            document.getElementById(
+                "statusChart"
+            ),
+            {
+
+                type:"doughnut",
+
+                data:{
+
+                    labels:Object.keys(status),
+
+                    datasets:[{
+
+                        data:Object.values(status)
+
+                    }]
+
+                },
+
+                options:{
+
+                    responsive:true,
+
+                    maintainAspectRatio:false,
+
+                    plugins:{
+
+                        legend:{
+
+                            position:"bottom",
+
+                            labels:{
+                                font:{size:9}
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    charts.category=
+        new Chart(
+            document.getElementById(
+                "categoryChart"
+            ),
+            {
+
+                type:"bar",
+
+                data:{
+
+                    labels:Object.keys(category),
+
+                    datasets:[{
+
+                        label:"Jumlah",
+
+                        data:Object.values(category)
+
+                    }]
+
+                },
+
+                options:{
+
+                    indexAxis:"y",
+
+                    responsive:true,
+
+                    maintainAspectRatio:false,
+
+                    plugins:{
+
+                        legend:{
+                            display:false
+                        }
+
+                    },
+
+                    scales:{
+
+                        x:{
+
+                            beginAtZero:true,
+
+                            ticks:{
+                                precision:0,
+                                font:{size:9}
+                            }
+
+                        },
+
+                        y:{
+
+                            ticks:{
+                                font:{size:8}
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    charts.media=
+        new Chart(
+            document.getElementById(
+                "mediaChart"
+            ),
+            {
+
+                type:"pie",
+
+                data:{
+
+                    labels:Object.keys(media),
+
+                    datasets:[{
+
+                        data:Object.values(media)
+
+                    }]
+
+                },
+
+                options:{
+
+                    responsive:true,
+
+                    maintainAspectRatio:false,
+
+                    plugins:{
+
+                        legend:{
+
+                            position:"bottom",
+
+                            labels:{
+                                font:{size:9}
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    charts.product=
+        new Chart(
+            document.getElementById(
+                "productChart"
+            ),
+            {
+
+                type:"bar",
+
+                data:{
+
+                    labels:Object.keys(product),
+
+                    datasets:[{
+
+                        label:"Jumlah",
+
+                        data:Object.values(product)
+
+                    }]
+
+                },
+
+                options:{
+
+                    responsive:true,
+
+                    maintainAspectRatio:false,
+
+                    plugins:{
+
+                        legend:{
+                            display:false
+                        }
+
+                    },
+
+                    scales:{
+
+                        y:{
+
+                            beginAtZero:true,
+
+                            ticks:{
+                                precision:0,
+                                font:{size:9}
+                            }
+
+                        },
+
+                        x:{
+
+                            ticks:{
+                                font:{size:9}
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+}
+
+
+/* ================================
+MASTER DATA
+================================ */
+
+function renderMaster(){
+
+    if(!isMaster())return;
+
+
+    renderMasterType(
+        "media",
+        "masterMedia"
+    );
+
+    renderMasterType(
+        "produk",
+        "masterProduk"
+    );
+
+    renderMasterType(
+        "status",
+        "masterStatus"
+    );
+
+    renderMasterType(
+        "tujuanPelaporan",
+        "masterTujuan"
+    );
+
+    renderMasterType(
+        "kategori",
+        "masterKategori"
+    );
+
+    renderMasterType(
+        "unitKerja",
+        "masterUnitKerja"
+    );
+
+}
+
+
+function renderMasterType(
+    type,
+    elementId
+){
+
+    const container=
+        document.getElementById(elementId);
+
+
+    container.innerHTML=`
+
+        <div class="master-add">
+
+            <input
+                id="newMaster_${type}"
+                placeholder="Tambah data..."
+            >
+
+            <button
+                class="btn-primary"
+                onclick="addMaster('${type}')">
+                Tambah
+            </button>
+
+        </div>
+
+    `;
+
+
+    master[type].forEach(
+        function(value,index){
+
+            const row=
+                document.createElement("div");
+
+
+            row.className="master-row";
+
+
+            row.innerHTML=`
+
+                <span>
+                    ${escapeHTML(value)}
+                </span>
+
+                <div class="button-group">
+
+                    <button
+                        class="btn-warning"
+                        onclick="
+                            editMaster(
+                                '${type}',
+                                ${index}
+                            )
+                        ">
+                        Edit
+                    </button>
+
+                    <button
+                        class="btn-danger"
+                        onclick="
+                            deleteMaster(
+                                '${type}',
+                                ${index}
+                            )
+                        ">
+                        Hapus
+                    </button>
+
+                </div>
+
+            `;
+
+
+            container.appendChild(row);
+
+        }
+    );
+
+}
+
+
+function addMaster(type){
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const input=
+        document.getElementById(
+            "newMaster_"+type
+        );
+
+
+    const value=
+        input.value.trim();
+
+
+    if(!value)return;
+
+
+    if(master[type].includes(value)){
+
+        alert("Data tersebut sudah ada.");
+
+        return;
+
+    }
+
+
+    master[type].push(value);
+
+    saveStorage();
+
+    input.value="";
+
+    renderMaster();
+    populateAll();
+    renderTable();
+    renderDashboard();
+
+    showToast(
+        "Master data berhasil ditambahkan."
+    );
+
+}
+
+
+function editMaster(type,index){
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const oldValue=
+        master[type][index];
+
+
+    const newValue=
+        prompt(
+            "Ubah data:",
+            oldValue
+        );
+
+
+    if(newValue===null)return;
+
+
+    const clean=
+        newValue.trim();
+
+
+    if(!clean)return;
+
+
+    master[type][index]=clean;
+
+    saveStorage();
+
+    renderMaster();
+    populateAll();
+    renderTable();
+    renderDashboard();
+
+    showToast(
+        "Master data berhasil diubah."
+    );
+
+}
+
+
+function deleteMaster(type,index){
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    if(!confirm(
+        "Hapus master data ini?"
+    )){
+        return;
+    }
+
+
+    master[type].splice(index,1);
+
+    saveStorage();
+
+    renderMaster();
+    populateAll();
+    renderTable();
+    renderDashboard();
+
+    showToast(
+        "Master data berhasil dihapus."
+    );
+
+}
+
+
+/* ================================
+MANAJEMEN AKUN
+================================ */
+
+function populateUserUnit(){
+
+    const select=
+        document.getElementById(
+            "userUnit"
+        );
+
+    if(!select)return;
+
+
+    const oldValue=
+        select.value;
+
+
+    select.innerHTML=
+        `<option value="">Pilih Unit Kerja</option>`;
+
+
+    master.unitKerja
+    .filter(unit=>
+        unit!=="Kantor Pusat" &&
+        unit!=="Lainnya"
+    )
+    .forEach(function(unit){
+
+        const option=
+            document.createElement("option");
+
+        option.value=unit;
+        option.textContent=unit;
+
+        select.appendChild(option);
+
+    });
+
+
+    if(
+        master.unitKerja.includes(oldValue)
+    ){
+
+        select.value=oldValue;
+
+    }
+
+}
+
+
+function resetUserForm(){
+
+    document
+    .getElementById("userForm")
+    .reset();
+
+    document
+    .getElementById("userEditId")
+    .value="";
+
+    document
+    .getElementById("userActive")
+    .value="true";
+
+    document
+    .getElementById("userRole")
+    .value="USER";
+
+}
+
+
+function startAddUser(){
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    resetUserForm();
+
+    document
+    .getElementById("userLogin")
+    .focus();
+
+}
+
+
+function cancelUserForm(){
+
+    resetUserForm();
+
+}
+
+
+function saveUser(event){
+
+    event.preventDefault();
+
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const editId=
+        document
+        .getElementById("userEditId")
+        .value;
+
+
+    const login=
+        document
+        .getElementById("userLogin")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const password=
+        document
+        .getElementById("userPassword")
+        .value;
+
+
+    const name=
+        document
+        .getElementById("userName")
+        .value
+        .trim();
+
+
+    const unit=
+        document
+        .getElementById("userUnit")
+        .value;
+
+
+    const role=
+        document
+        .getElementById("userRole")
+        .value;
+
+
+    const active=
+        document
+        .getElementById("userActive")
+        .value==="true";
+
+
+    if(role==="PUSAT"){
+        document.getElementById("userUnit").value="ALL";
+    }
+
+
+    const finalUnit=
+        role==="PUSAT"
+        ?"ALL"
+        :unit;
+
+
+    if(!login||!password||!name||!finalUnit){
+
+        alert(
+            "Semua data akun wajib diisi."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    Cegah email duplikat.
+    */
+
+    const duplicate=
+        users.some(user=>
+            String(user.login)
+                .toLowerCase()===login &&
+            String(user.id)!==String(editId)
+        );
+
+
+    if(duplicate){
+
+        alert(
+            "Login / email tersebut sudah digunakan."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    TAMBAH AKUN
+    */
+
+    if(!editId){
+
+        const newUser={
+
+            id:
+                "user-"+Date.now(),
+
+            login,
+
+            password,
+
+            name,
+
+            role,
+
+            unitKerja:finalUnit,
+
+            active
+
+        };
+
+
+        users.push(newUser);
+
+        saveUsers();
+
+        renderUsers();
+
+        resetUserForm();
+
+        showToast(
+            "Akun cabang berhasil ditambahkan."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    EDIT AKUN
+    */
+
+    const index=
+        users.findIndex(user=>
+            String(user.id)===String(editId)
+        );
+
+
+    if(index===-1){
+
+        alert("Akun tidak ditemukan.");
+
+        return;
+
+    }
+
+
+    /*
+    Master tidak boleh diubah
+    menjadi akun USER.
+    */
+
+    if(users[index].role==="MASTER"){
+
+        alert(
+            "Akun Master tidak dapat diedit dari menu ini."
+        );
+
+        return;
+
+    }
+
+
+    users[index]={
+
+        ...users[index],
+
+        login,
+
+        password,
+
+        name,
+
+        role,
+
+        unitKerja:finalUnit,
+
+        active
+
+    };
+
+
+    saveUsers();
+
+    renderUsers();
+
+    resetUserForm();
+
+    showToast(
+        "Akun berhasil diperbarui."
+    );
+
+}
+
+
+function editUser(id){
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const user=
+        users.find(item=>
+            String(item.id)===String(id)
+        );
+
+
+    if(!user)return;
+
+
+    if(user.role==="MASTER"){
+
+        alert(
+            "Akun Pusat / Master tidak dapat diubah dari menu ini."
+        );
+
+        return;
+
+    }
+
+
+    document
+    .getElementById("userEditId")
+    .value=user.id;
+
+    document
+    .getElementById("userLogin")
+    .value=user.login;
+
+    document
+    .getElementById("userPassword")
+    .value=user.password;
+
+    document
+    .getElementById("userName")
+    .value=user.name;
+
+    document
+    .getElementById("userUnit")
+    .value=user.unitKerja;
+
+    document
+    .getElementById("userRole")
+    .value=user.role==="PUSAT" ? "PUSAT" : "USER";
+
+    document
+    .getElementById("userActive")
+    .value=
+        user.active===false
+        ?"false"
+        :"true";
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+function toggleUser(id){
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const user=
+        users.find(item=>
+            String(item.id)===String(id)
+        );
+
+
+    if(!user)return;
+
+
+    if(user.role==="MASTER"){
+
+        alert(
+            "Akun Pusat / Master tidak dapat dinonaktifkan."
+        );
+
+        return;
+
+    }
+
+
+    user.active=
+        user.active===false;
+
+
+    saveUsers();
+
+    renderUsers();
+
+    showToast(
+        user.active
+        ?"Akun berhasil diaktifkan."
+        :"Akun berhasil dinonaktifkan."
+    );
+
+}
+
+
+function deleteUser(id){
+
+    if(!isMaster()){
+
+        alert("Akses hanya untuk Master.");
+        return;
+
+    }
+
+
+    const user=
+        users.find(item=>
+            String(item.id)===String(id)
+        );
+
+
+    if(!user)return;
+
+
+    if(user.role==="MASTER"){
+
+        alert(
+            "Akun Pusat / Master tidak dapat dihapus."
+        );
+
+        return;
+
+    }
+
+
+    if(!confirm(
+        "Hapus akun "+user.login+"?"
+    )){
+
+        return;
+
+    }
+
+
+    users=
+        users.filter(item=>
+            String(item.id)!==String(id)
+        );
+
+
+    saveUsers();
+
+    renderUsers();
+
+    showToast(
+        "Akun berhasil dihapus."
+    );
+
+}
+
+
+function renderUsers(){
+
+    if(!isMaster())return;
+
+
+    const tbody=
+        document.getElementById(
+            "usersTableBody"
+        );
+
+
+    if(!tbody)return;
+
+
+    tbody.innerHTML="";
+
+
+    const sorted=
+        [...users].sort(function(a,b){
+
+            if(a.role==="MASTER")return -1;
+            if(b.role==="MASTER")return 1;
+
+            return String(a.name)
+                .localeCompare(
+                    String(b.name)
+                );
+
+        });
+
+
+    sorted.forEach(function(user){
+
+        const row=
+            document.createElement("tr");
+
+
+        const active=
+            user.active!==false;
+
+
+        const statusHTML=
+            active
+            ?`
+                <span class="status-badge status-green">
+                    Aktif
+                </span>
+             `
+            :`
+                <span class="status-badge status-red">
+                    Nonaktif
+                </span>
+             `;
+
+
+        const roleText=
+            user.role==="MASTER"
+            ?"MASTER"
+            :user.role==="PUSAT"
+                ?"PUSAT / KANTOR PUSAT"
+                :"USER / CABANG";
+
+
+        let actionHTML="";
+
+
+        if(user.role==="MASTER"){
+
+            actionHTML=`
+
+                <span
+                    style="
+                        color:#6b7280;
+                        font-size:10px;
+                    "
+                >
+                    Akun Utama
+                </span>
+
+            `;
+
+        }else{
+
+            actionHTML=`
+
+                <div class="button-group">
+
+                    <button
+                        class="btn-warning"
+                        onclick="editUser('${user.id}')">
+                        Edit
+                    </button>
+
+                    <button
+                        class="${
+                            active
+                            ?"btn-secondary"
+                            :"btn-success"
+                        }"
+                        onclick="toggleUser('${user.id}')">
+                        ${
+                            active
+                            ?"Nonaktifkan"
+                            :"Aktifkan"
+                        }
+                    </button>
+
+                    <button
+                        class="btn-danger"
+                        onclick="deleteUser('${user.id}')">
+                        Hapus
+                    </button>
+
+                </div>
+
+            `;
+
+        }
+
+
+        row.innerHTML=`
+
+            <td>
+                <b>
+                    ${escapeHTML(user.login)}
+                </b>
+            </td>
+
+            <td>
+                ${escapeHTML(user.name)}
+            </td>
+
+            <td>
+                ${escapeHTML(roleText)}
+            </td>
+
+            <td>
+                ${
+                    user.role==="MASTER" || user.role==="PUSAT"
+                    ?"Semua Unit"
+                    :escapeHTML(user.unitKerja)
+                }
+            </td>
+
+            <td>
+                ${statusHTML}
+            </td>
+
+            <td>
+                ${actionHTML}
+            </td>
+
+        `;
+
+
+        tbody.appendChild(row);
+
+    });
+
+
+    document
+    .getElementById("userCount")
+    .textContent=users.length;
+
+}
+
+
+/* ================================
+EXPORT EXCEL
+================================ */
+
+function getExcelRows(){
+
+    return getVisibleComplaints()
+    .map(function(item){
+
+        return [
+
+            item.nomor || "",
+            item.nama || "",
+            item.tanggal || "",
+            item.status==="Ditutup"
+                ?(item.tanggalDitutup || "")
+                :"",
+
+            item.petugas || "",
+            item.unitKerja || "",
+            item.media || "",
+            item.produk || "",
+            item.tujuanPelaporan || "",
+            item.kategori || "",
+            item.status || "",
+            item.jenisIdentitas || "",
+            item.nomorIdentitas || "",
+            item.noHp || "",
+            item.email || "",
+            item.kuasa || "",
+            item.alamat || "",
+            item.kronologi || "",
+            item.kerugian===""||
+            item.kerugian===null||
+            item.kerugian===undefined
+                ? ""
+                : Number(item.kerugian),
+
+            (item.dokumen||[]).join("; "),
+            item.penyelesaian || "",
+            item.keberatan || "",
+            item.penyelesaianKeberatan || ""
+
+        ];
+
+    });
+
+}
+
+
+function exportExcel(){
+
+    if(
+        typeof XLSX==="undefined"
+    ){
+
+        alert(
+            "Library Excel belum berhasil dimuat. Pastikan komputer terhubung ke internet."
+        );
+
+        return;
+
+    }
+
+
+    const headers=[
+
+        "No Registrasi",
+        "Nama Pelapor",
+        "Tanggal Pengaduan",
+        "Tanggal Ditutup",
+        "Nama Petugas Input",
+        "Unit Kerja",
+        "Media Pengaduan",
+        "Produk",
+        "Tujuan Pelaporan",
+        "Kategori Permasalahan",
+        "Status",
+        "Jenis Identitas",
+        "Nomor Identitas",
+        "Nomor Handphone",
+        "Email",
+        "Nama Kuasa/Pengacara",
+        "Alamat",
+        "Kronologi Pengaduan",
+        "Nilai Kerugian",
+        "Dokumen Pendukung",
+        "Penyelesaian/Tanggapan Bank",
+        "Keberatan terhadap Penyelesaian",
+        "Penyelesaian atas Keberatan"
+
+    ];
+
+
+    const rows=
+        getExcelRows();
+
+
+    const data=[
+        headers,
+        ...rows
+    ];
+
+
+    const worksheet=
+        XLSX.utils.aoa_to_sheet(data);
+
+
+    worksheet["!cols"]=[
+
+        {wch:22},
+        {wch:28},
+        {wch:16},
+        {wch:16},
+        {wch:24},
+        {wch:18},
+        {wch:18},
+        {wch:18},
+        {wch:22},
+        {wch:38},
+        {wch:25},
+        {wch:16},
+        {wch:22},
+        {wch:20},
+        {wch:30},
+        {wch:25},
+        {wch:35},
+        {wch:55},
+        {wch:18},
+        {wch:30},
+        {wch:55},
+        {wch:55},
+        {wch:55}
+
+    ];
+
+
+    for(
+        let row=2;
+        row<=rows.length+1;
+        row++
+    ){
+
+        const tanggalCell=
+            worksheet["C"+row];
+
+        const tanggalTutupCell=
+            worksheet["D"+row];
+
+
+        if(
+            tanggalCell &&
+            tanggalCell.v
+        ){
+
+            tanggalCell.z="dd-mm-yyyy";
+
+        }
+
+
+        if(
+            tanggalTutupCell &&
+            tanggalTutupCell.v
+        ){
+
+            tanggalTutupCell.z="dd-mm-yyyy";
+
+        }
+
+    }
+
+
+    const longTextColumns=[
+        "P",
+        "Q",
+        "R",
+        "T",
+        "U",
+        "V",
+        "W"
+    ];
+
+
+    longTextColumns.forEach(function(col){
+
+        for(
+            let row=1;
+            row<=rows.length+1;
+            row++
+        ){
+
+            const cell=
+                worksheet[col+row];
+
+            if(cell){
+
+                cell.alignment={
+                    wrapText:true,
+                    vertical:"top"
+                };
+
+            }
+
+        }
+
+    });
+
+
+    headers.forEach(function(_,index){
+
+        const cell=
+            worksheet[
+                XLSX.utils.encode_cell({
+                    r:0,
+                    c:index
+                })
+            ];
+
+
+        if(cell){
+
+            cell.s={
+                font:{
+                    bold:true
+                },
+                alignment:{
+                    horizontal:"center",
+                    vertical:"center",
+                    wrapText:true
+                }
+            };
+
+        }
+
+    });
+
+
+    worksheet["!freeze"]={
+        xSplit:0,
+        ySplit:1
+    };
+
+
+    const workbook=
+        XLSX.utils.book_new();
+
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Data Pengaduan"
+    );
+
+
+    /*
+    Nama file berbeda supaya jelas
+    ketika cabang melakukan export.
+    */
+
+    let filename=
+        "Data_Pengaduan_HIK.xlsx";
+
+
+    if(isBranchUser()){
+
+        const safeUnit=
+            currentUser.unitKerja
+            .replace(/[^a-z0-9]+/gi,"_");
+
+        filename=
+            "Data_Pengaduan_"+
+            safeUnit+
+            ".xlsx";
+
+    }
+
+
+    XLSX.writeFile(
+        workbook,
+        filename
+    );
+
+
+    showToast(
+        "Excel berhasil dibuat."
+    );
+
+}
+
+
+/* ================================
+BACKUP
+================================ */
+
+function updateBackupCount(){
+
+    const count=
+        document.getElementById(
+            "backupCount"
+        );
+
+    const trashCount=
+        document.getElementById(
+            "backupTrashCount"
+        );
+
+
+    if(count){
+
+        count.textContent=
+            getVisibleComplaints().length;
+
+    }
+
+
+    if(trashCount){
+
+        trashCount.textContent=
+            hasAllUnitAccess()
+            ?trash.length
+            :0;
+
+    }
+
+}
+
+
+function downloadBackup(){
+
+    if(!isMaster()){
+
+        alert(
+            "Backup penuh hanya dapat dilakukan oleh Master."
+        );
+
+        return;
+
+    }
+
+
+    const backup={
+
+        version:"5.0",
+
+        date:new Date().toISOString(),
+
+        complaints,
+
+        trash,
+
+        master,
+
+        users
+
+    };
+
+
+    downloadFile(
+        JSON.stringify(
+            backup,
+            null,
+            2
+        ),
+        "Backup_Pengaduan_HIK.json",
+        "application/json"
+    );
+
+
+    showToast(
+        "Backup berhasil dibuat."
+    );
+
+}
+
+
+function restoreBackup(event){
+
+    if(!isMaster()){
+
+        alert(
+            "Restore backup hanya dapat dilakukan oleh Master."
+        );
+
+        event.target.value="";
+
+        return;
+
+    }
+
+
+    const file=
+        event.target.files[0];
+
+
+    if(!file)return;
+
+
+    const reader=
+        new FileReader();
+
+
+    reader.onload=function(){
+
+        try{
+
+            const backup=
+                JSON.parse(reader.result);
+
+
+            if(
+                !Array.isArray(
+                    backup.complaints
+                )
+            ){
+
+                throw new Error(
+                    "Format backup tidak valid."
+                );
+
+            }
+
+
+            if(!confirm(
+                "Restore akan mengganti data saat ini. Lanjutkan?"
+            )){
+                return;
+            }
+
+
+            complaints=
+                backup.complaints;
+
+
+            if(
+                Array.isArray(backup.trash)
+            ){
+
+                trash=
+                    backup.trash;
+
+            }else{
+
+                trash=[];
+
+            }
+
+
+            if(backup.master){
+                master=backup.master;
+            }
+
+
+            /*
+            User dari backup hanya dipulihkan
+            apabila memang terdapat di backup.
+            */
+
+            if(
+                Array.isArray(backup.users)
+            ){
+
+                users=
+                    backup.users;
+
+            }
+
+
+            if(
+                !Array.isArray(master.unitKerja)
+            ){
+
+                master.unitKerja=
+                    clone(DEFAULT_MASTER.unitKerja);
+
+            }
+
+
+            complaints=
+                complaints.map(item=>{
+
+                    const newItem={...item};
+
+
+                    if(
+                        !newItem.unitKerja &&
+                        newItem.cabang
+                    ){
+
+                        newItem.unitKerja=
+                            newItem.cabang;
+
+                    }
+
+
+                    delete newItem.cabang;
+                    delete newItem.tujuan;
+
+
+                    if(!newItem.unitKerja){
+                        newItem.unitKerja="Kantor Pusat";
+                    }
+
+
+                    if(
+                        newItem.status==="Ditutup" &&
+                        !newItem.tanggalDitutup
+                    ){
+
+                        newItem.tanggalDitutup=
+                            newItem.tanggal||"";
+
+                    }
+
+
+                    if(
+                        newItem.status!=="Ditutup"
+                    ){
+
+                        newItem.tanggalDitutup="";
+
+                    }
+
+
+                    return newItem;
+
+                });
+
+
+            loadUsers();
+
+            saveStorage();
+
+            populateAll();
+            renderMaster();
+            renderTable();
+            renderDashboard();
+            renderTrash();
+            renderUsers();
+            updateBackupCount();
+
+            showToast(
+                "Backup berhasil dipulihkan."
+            );
+
+        }
+        catch(error){
+
+            alert(
+                "Gagal restore: "+
+                error.message
+            );
+
+        }
+
+
+        event.target.value="";
+
+    };
+
+
+    reader.readAsText(file);
+
+}
+
+
+/* ================================
+DOWNLOAD
+================================ */
+
+function downloadFile(
+    content,
+    filename,
+    type
+){
+
+    const blob=
+        new Blob(
+            [content],
+            {type:type}
+        );
+
+
+    const url=
+        URL.createObjectURL(blob);
+
+
+    const a=
+        document.createElement("a");
+
+
+    a.href=url;
+    a.download=filename;
+
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/* ================================
+INITIALIZE
+================================ */
+
+function initializeApplication(){
+
+    loadStorage();
+
+    loadUsers();
+
+    updateUserInterface();
+
+    populateAll();
+
+    renderTable();
+
+    renderMaster();
+
+    renderTrash();
+
+    renderDashboard();
+
+    renderUsers();
+
+    updateBackupCount();
+
+
+    document
+    .getElementById("formTanggal")
+    .value=
+        todayISO();
+
+
+    updatePreviewNumber();
+
+}
+
+
+/* ================================
+EVENT
+================================ */
+
+document
+.getElementById("loginForm")
+.addEventListener(
+    "submit",
+    function(event){
+
+        event.preventDefault();
+
+        document
+        .getElementById("loginError")
+        .style.display="none";
+
+        performLogin();
+
+    }
+);
+
+
+document
+.getElementById("complaintForm")
+.addEventListener(
+    "submit",
+    function(event){
+
+        saveComplaint(event);
+
+    }
+);
+
+
+document
+.getElementById("userForm")
+.addEventListener(
+    "submit",
+    function(event){
+
+        saveUser(event);
+
+    }
+);
+
+
+document
+.getElementById("detailModal")
+.addEventListener(
+    "click",
+    function(event){
+
+        if(event.target===this){
+            closeDetail();
+        }
+
+    }
+);
+
+
+/* ================================
+AUTO LOGIN SESSION
+================================ */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        loadUsers();
+
+
+        const loggedIn=
+            sessionStorage.getItem(
+                "HIK_LOGIN"
+            );
+
+
+        const savedUser=
+            sessionStorage.getItem(
+                "HIK_LOGIN_USER"
+            );
+
+
+        if(
+            loggedIn==="true" &&
+            savedUser
+        ){
+
+            try{
+
+                currentUser=
+                    JSON.parse(savedUser);
+
+
+                /*
+                Cek bahwa akun masih ada
+                dan masih aktif.
+                */
+
+                const realUser=
+                    users.find(user=>
+                        String(user.id)===
+                        String(currentUser.id)
+                    );
+
+
+                if(
+                    !realUser ||
+                    realUser.active===false
+                ){
+
+                    sessionStorage.removeItem(
+                        "HIK_LOGIN"
+                    );
+
+                    sessionStorage.removeItem(
+                        "HIK_LOGIN_USER"
+                    );
+
+                    currentUser=null;
+
+                    return;
+
+                }
+
+
+                currentUser=
+                    clone(realUser);
+
+
+                document
+                .getElementById("loginPage")
+                .style.display="none";
+
+                document
+                .getElementById("app")
+                .style.display="block";
+
+                initializeApplication();
+
+            }
+            catch(error){
+
+                sessionStorage.removeItem(
+                    "HIK_LOGIN"
+                );
+
+                sessionStorage.removeItem(
+                    "HIK_LOGIN_USER"
+                );
+
+            }
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
