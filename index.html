@@ -3923,10 +3923,67 @@ function startAdd(){
 
 
 /* ================================
+LAMPIRAN PENGADUAN
+================================ */
+
+function readAttachmentFile(file){
+    return new Promise(function(resolve,reject){
+        const reader=new FileReader();
+
+        reader.onload=function(){
+            resolve({
+                name:file.name,
+                type:file.type||"application/octet-stream",
+                size:file.size,
+                data:reader.result
+            });
+        };
+
+        reader.onerror=function(){
+            reject(
+                reader.error||
+                new Error("Lampiran gagal dibaca.")
+            );
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderDocumentLinks(documents){
+    if(!Array.isArray(documents)||documents.length===0){
+        return "-";
+    }
+
+    return documents.map(function(doc,index){
+        if(doc && typeof doc==="object" && doc.data){
+            const name=escapeHTML(
+                doc.name||
+                ("Lampiran "+(index+1))
+            );
+
+            return `
+                <a
+                    href="${doc.data}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color:#0f766e;font-weight:bold;text-decoration:underline;display:inline-block;margin:2px 0;">
+                    ${name} — Lihat Lampiran
+                </a>
+            `;
+        }
+
+        // Lampiran lama hanya menyimpan nama file.
+        return `<span>${escapeHTML(String(doc||""))}</span>`;
+    }).join("<br>");
+}
+
+
+/* ================================
 SAVE
 ================================ */
 
-function saveComplaint(event){
+async function saveComplaint(event){
 
     event.preventDefault();
 
@@ -4037,22 +4094,26 @@ function saveComplaint(event){
     let documents=[];
 
 
-    if(fileInput&&fileInput.files){
+    if(isEdit){
 
-        Array.from(fileInput.files)
-        .forEach(file=>
-            documents.push(file.name)
-        );
+        documents=
+            Array.isArray(existing.dokumen)
+            ?existing.dokumen.slice()
+            :[];
 
     }
 
 
-    if(
-        isEdit &&
-        documents.length===0
-    ){
+    if(fileInput&&fileInput.files&&fileInput.files.length){
 
-        documents=existing.dokumen||[];
+        const newDocuments=
+            await Promise.all(
+                Array.from(fileInput.files)
+                .map(readAttachmentFile)
+            );
+
+        documents=
+            documents.concat(newDocuments);
 
     }
 
@@ -5373,9 +5434,8 @@ function showDetail(id){
 
             ${detailItem(
                 "Dokumen Pendukung",
-                item.dokumen&&item.dokumen.length
-                ?item.dokumen.join("\\n")
-                :"-",
+                renderDocumentLinks(item.dokumen),
+                true,
                 true
             )}
 
@@ -5437,7 +5497,8 @@ function showDetail(id){
 function detailItem(
     label,
     value,
-    full=false
+    full=false,
+    raw=false
 ){
 
     return`
@@ -5451,13 +5512,15 @@ function detailItem(
             </small>
 
             <div>
-                ${escapeHTML(
-                    value===undefined||
-                    value===null||
-                    value===""
-                    ?"-"
-                    :String(value)
-                )}
+                ${raw
+                    ?(value===undefined||value===null||value===""?"-":String(value))
+                    :escapeHTML(
+                        value===undefined||
+                        value===null||
+                        value===""
+                        ?"-"
+                        :String(value)
+                    )}
             </div>
 
         </div>
