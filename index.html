@@ -5,7 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Pengaduan Nasabah HIK</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+if(isCentralMode()){
+    setInterval(function(){
+        if(currentUser){
+            refreshCentralState();
+        }
+    },30000);
+}
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
@@ -2151,7 +2160,7 @@ td{
         </div>
 
     
-<div class="hik-watermark"><span>Create 2026 @ Ridoni Julistiyan,SH.</span></div>
+<div class="hik-watermark"><span>PT BPR Syariah HIK — Dashboard Pengaduan Nasabah</span></div>
 </main>
 
 </div>
@@ -2209,12 +2218,12 @@ const DEFAULT_USERS=[
     },
   
     {
-        id:"Kantor Pusat",
-        login:"pusat@bprshik.co.id",
-        password:"Pusat@2026",
-        name:"Kantor Pusat",
-        role:"Pusat / Kantor Pusat",
-        unitKerja:"ALL",
+        id:"user-bekasi",
+        login:"bekasi@bprshik.co.id",
+        password:"Bekasi@2026",
+        name:"Cabang Bekasi",
+        role:"USER",
+        unitKerja:"HIK Bekasi",
         active:true
     },
 
@@ -2958,10 +2967,143 @@ function getVisibleTrash(){
 
 
 /* ================================
+CENTRAL DATA BRIDGE
+================================ */
+
+const HIK_CENTRAL_MODE =
+    typeof google !== "undefined" &&
+    google.script &&
+    google.script.run;
+
+let HIK_CENTRAL_READY=false;
+let HIK_CENTRAL_LOADING=false;
+
+function isCentralMode(){
+    return !!HIK_CENTRAL_MODE;
+}
+
+function applyCentralState(state){
+
+    if(!state || typeof state!=="object") return;
+
+    if(Array.isArray(state.complaints)){
+        complaints=state.complaints;
+    }
+
+    if(state.master && typeof state.master==="object"){
+        master=state.master;
+    }
+
+    if(Array.isArray(state.trash)){
+        trash=state.trash;
+    }
+
+    if(Array.isArray(state.users)){
+        users=state.users;
+    }
+
+    HIK_CENTRAL_READY=true;
+}
+
+function loadCentralState(callback){
+
+    if(!isCentralMode()){
+        if(callback) callback();
+        return;
+    }
+
+    if(HIK_CENTRAL_LOADING) return;
+
+    HIK_CENTRAL_LOADING=true;
+
+    google.script.run
+    .withSuccessHandler(function(state){
+
+        HIK_CENTRAL_LOADING=false;
+
+        if(state && state.initialized===false){
+
+            /*
+             * Database pusat baru: pertahankan data bawaan HTML
+             * sebagai titik awal, lalu kirim sekali ke database pusat.
+             * Data lama dari browser dapat dipindahkan melalui Backup/Restore.
+             */
+            complaints=clone(INITIAL_DATA);
+            master=clone(DEFAULT_MASTER);
+            trash=[];
+            users=clone(DEFAULT_USERS);
+            HIK_CENTRAL_READY=true;
+
+            google.script.run
+            .withFailureHandler(function(error){
+                console.error("Gagal melakukan inisialisasi database pusat:",error);
+            })
+            .saveOperationalData({
+                complaints:complaints,
+                master:master,
+                trash:trash
+            });
+
+            google.script.run
+            .withFailureHandler(function(error){
+                console.error("Gagal menyimpan akun awal:",error);
+            })
+            .saveUsersData(users);
+
+        }else{
+            applyCentralState(state);
+        }
+
+        if(callback) callback();
+
+    })
+    .withFailureHandler(function(error){
+
+        HIK_CENTRAL_LOADING=false;
+
+        console.error("Gagal memuat database pusat:",error);
+
+        alert(
+            "Database pusat belum dapat diakses.\n\n"+
+            (error && error.message
+                ?error.message
+                :"Periksa pengaturan Google Apps Script.")
+        );
+
+    })
+    .getCentralState();
+}
+
+function refreshCentralState(){
+
+    if(!isCentralMode()) return;
+
+    google.script.run
+    .withSuccessHandler(function(state){
+
+        applyCentralState(state);
+
+        if(typeof renderTable==="function") renderTable();
+        if(typeof renderDashboard==="function") renderDashboard();
+        if(typeof renderTrash==="function") renderTrash();
+        if(typeof renderUsers==="function") renderUsers();
+
+    })
+    .withFailureHandler(function(error){
+        console.error("Refresh database pusat gagal:",error);
+    })
+    .getCentralState();
+}
+
+/* ================================
 USER STORAGE
 ================================ */
 
 function loadUsers(){
+
+    if(isCentralMode() && HIK_CENTRAL_READY){
+        return;
+    }
 
     const saved=
         localStorage.getItem("HIK_USERS");
@@ -2969,7 +3111,6 @@ function loadUsers(){
     if(saved){
 
         try{
-
             users=JSON.parse(saved);
 
             if(!Array.isArray(users)){
@@ -2977,23 +3118,12 @@ function loadUsers(){
             }
 
         }catch{
-
             users=[];
-
         }
 
     }else{
-
         users=clone(DEFAULT_USERS);
-
     }
-
-
-    /*
-    Pastikan akun MASTER selalu ada.
-    Tidak menghapus akun cabang yang sudah
-    dibuat sebelumnya.
-    */
 
     const masterExists=
         users.some(user=>
@@ -3001,28 +3131,34 @@ function loadUsers(){
             LOGIN_EMAIL.toLowerCase()
         );
 
-
     if(!masterExists){
-
-        users.unshift(
-            clone(DEFAULT_USERS[0])
-        );
-
+        users.unshift(clone(DEFAULT_USERS[0]));
     }
 
-
     saveUsers();
-
 }
 
-
 function saveUsers(){
+
+    if(isCentralMode()){
+
+        if(!HIK_CENTRAL_READY) return;
+
+        google.script.run
+        .withFailureHandler(function(error){
+            console.error("Gagal menyimpan akun ke database pusat:",error);
+            alert("Akun gagal disimpan ke database pusat. " +
+                (error && error.message ? error.message : ""));
+        })
+        .saveUsersData(users);
+
+        return;
+    }
 
     localStorage.setItem(
         "HIK_USERS",
         JSON.stringify(users)
     );
-
 }
 
 
@@ -3045,6 +3181,10 @@ STORAGE
 
 function loadStorage(){
 
+    if(isCentralMode() && HIK_CENTRAL_READY){
+        return;
+    }
+
     const savedComplaints=
         localStorage.getItem("HIK_COMPLAINTS");
 
@@ -3053,7 +3193,6 @@ function loadStorage(){
 
     const savedTrash=
         localStorage.getItem("HIK_TRASH");
-
 
     if(savedComplaints){
 
@@ -3064,11 +3203,8 @@ function loadStorage(){
         }
 
     }else{
-
         complaints=clone(INITIAL_DATA);
-
     }
-
 
     if(savedMaster){
 
@@ -3079,11 +3215,8 @@ function loadStorage(){
         }
 
     }else{
-
         master=clone(DEFAULT_MASTER);
-
     }
-
 
     if(savedTrash){
 
@@ -3095,92 +3228,75 @@ function loadStorage(){
             }
 
         }catch{
-
             trash=[];
-
         }
 
     }else{
-
         trash=[];
-
     }
-
 
     Object.keys(DEFAULT_MASTER)
     .forEach(function(key){
-
         if(!Array.isArray(master[key])){
             master[key]=clone(DEFAULT_MASTER[key]);
         }
-
     });
 
+    complaints=complaints.map(function(item){
 
-    complaints=
-        complaints.map(function(item){
+        const newItem={...item};
 
-            const newItem={...item};
+        delete newItem.tujuan;
 
-            delete newItem.tujuan;
+        if(!newItem.unitKerja && newItem.cabang){
+            newItem.unitKerja=newItem.cabang;
+        }
 
+        delete newItem.cabang;
 
-            if(
-                !newItem.unitKerja &&
-                newItem.cabang
-            ){
-                newItem.unitKerja=newItem.cabang;
-            }
+        if(!newItem.unitKerja){
+            newItem.unitKerja="Kantor Pusat";
+        }
 
-            delete newItem.cabang;
+        if(!newItem.tujuanPelaporan){
+            newItem.tujuanPelaporan=
+                newItem.media==="APPK" ? "APPK" : "Internal";
+        }
 
+        if(newItem.status==="Ditutup" && !newItem.tanggalDitutup){
+            newItem.tanggalDitutup=newItem.tanggal||"";
+        }
 
-            if(!newItem.unitKerja){
-                newItem.unitKerja="Kantor Pusat";
-            }
+        if(newItem.status!=="Ditutup"){
+            newItem.tanggalDitutup="";
+        }
 
-
-            if(!newItem.tujuanPelaporan){
-
-                newItem.tujuanPelaporan=
-                    newItem.media==="APPK"
-                    ?"APPK"
-                    :"Internal";
-
-            }
-
-
-            if(
-                newItem.status==="Ditutup" &&
-                !newItem.tanggalDitutup
-            ){
-
-                newItem.tanggalDitutup=
-                    newItem.tanggal||"";
-
-            }
-
-
-            if(
-                newItem.status!=="Ditutup"
-            ){
-
-                newItem.tanggalDitutup="";
-
-            }
-
-
-            return newItem;
-
-        });
-
+        return newItem;
+    });
 
     saveStorage();
-
 }
 
-
 function saveStorage(){
+
+    if(isCentralMode()){
+
+        if(!HIK_CENTRAL_READY) return;
+
+        google.script.run
+        .withFailureHandler(function(error){
+            console.error("Gagal menyimpan data ke database pusat:",error);
+            alert("Data gagal disimpan ke database pusat. " +
+                (error && error.message ? error.message : ""));
+        })
+        .saveOperationalData({
+            complaints:complaints,
+            master:master,
+            trash:trash
+        });
+
+        return;
+    }
 
     localStorage.setItem(
         "HIK_COMPLAINTS",
@@ -3196,7 +3312,6 @@ function saveStorage(){
         "HIK_TRASH",
         JSON.stringify(trash)
     );
-
 }
 
 
@@ -3956,6 +4071,37 @@ function readAttachmentFile(file){
     });
 }
 
+function openCentralAttachment(fileId){
+
+    if(!isCentralMode()) return;
+
+    const popup=window.open("about:blank","_blank");
+
+    google.script.run
+    .withSuccessHandler(function(file){
+
+        if(!file || !file.data){
+            if(popup) popup.close();
+            alert("Lampiran tidak dapat dibuka.");
+            return;
+        }
+
+        if(popup){
+            popup.location.href=file.data;
+        }else{
+            window.open(file.data,"_blank");
+        }
+
+    })
+    .withFailureHandler(function(error){
+        if(popup) popup.close();
+        alert("Lampiran gagal dibuka. " +
+            (error && error.message ? error.message : ""));
+    })
+    .getAttachmentData(fileId);
+}
+
+
 function renderDocumentLinks(documents){
     if(!Array.isArray(documents)||documents.length===0){
         return "-";
@@ -3973,6 +4119,24 @@ function renderDocumentLinks(documents){
                     href="${doc.data}"
                     target="_blank"
                     rel="noopener noreferrer"
+                    style="color:#0f766e;font-weight:bold;text-decoration:underline;display:inline-block;margin:2px 0;">
+                    ${name} — Lihat Lampiran
+                </a>
+            `;
+        }
+
+        if(doc && typeof doc==="object" && doc.driveId && isCentralMode()){
+            const name=escapeHTML(
+                doc.name||
+                ("Lampiran "+(index+1))
+            );
+
+            const safeId=escapeHTML(String(doc.driveId));
+
+            return `
+                <a
+                    href="#"
+                    onclick="openCentralAttachment('${safeId}');return false;"
                     style="color:#0f766e;font-weight:bold;text-decoration:underline;display:inline-block;margin:2px 0;">
                     ${name} — Lihat Lampiran
                 </a>
@@ -7569,9 +7733,14 @@ function restoreBackup(event){
                 });
 
 
+            if(isCentralMode()){
+                HIK_CENTRAL_READY=true;
+            }
+
             loadUsers();
 
             saveStorage();
+            saveUsers();
 
             populateAll();
             renderMaster();
@@ -7748,84 +7917,40 @@ document
 AUTO LOGIN SESSION
 ================================ */
 
-window.addEventListener(
-    "load",
-    function(){
+function startLoginSessionCheck(){
 
-        loadUsers();
+    loadUsers();
 
+    const loggedIn=
+        sessionStorage.getItem(
+            "HIK_LOGIN"
+        );
 
-        const loggedIn=
-            sessionStorage.getItem(
-                "HIK_LOGIN"
-            );
+    const savedUser=
+        sessionStorage.getItem(
+            "HIK_LOGIN_USER"
+        );
 
+    if(
+        loggedIn==="true" &&
+        savedUser
+    ){
 
-        const savedUser=
-            sessionStorage.getItem(
-                "HIK_LOGIN_USER"
-            );
+        try{
 
+            currentUser=
+                JSON.parse(savedUser);
 
-        if(
-            loggedIn==="true" &&
-            savedUser
-        ){
+            const realUser=
+                users.find(user=>
+                    String(user.id)===
+                    String(currentUser.id)
+                );
 
-            try{
-
-                currentUser=
-                    JSON.parse(savedUser);
-
-
-                /*
-                Cek bahwa akun masih ada
-                dan masih aktif.
-                */
-
-                const realUser=
-                    users.find(user=>
-                        String(user.id)===
-                        String(currentUser.id)
-                    );
-
-
-                if(
-                    !realUser ||
-                    realUser.active===false
-                ){
-
-                    sessionStorage.removeItem(
-                        "HIK_LOGIN"
-                    );
-
-                    sessionStorage.removeItem(
-                        "HIK_LOGIN_USER"
-                    );
-
-                    currentUser=null;
-
-                    return;
-
-                }
-
-
-                currentUser=
-                    clone(realUser);
-
-
-                document
-                .getElementById("loginPage")
-                .style.display="none";
-
-                document
-                .getElementById("app")
-                .style.display="block";
-
-                initializeApplication();
-
-            }
-            catch(error){
+            if(
+                !realUser ||
+                realUser.active===false
+            ){
 
                 sessionStorage.removeItem(
                     "HIK_LOGIN"
@@ -7835,12 +7960,64 @@ window.addEventListener(
                     "HIK_LOGIN_USER"
                 );
 
+                currentUser=null;
+
+                return;
             }
+
+            currentUser=
+                clone(realUser);
+
+            document
+            .getElementById("loginPage")
+            .style.display="none";
+
+            document
+            .getElementById("app")
+            .style.display="block";
+
+            initializeApplication();
+
+        }
+        catch(error){
+
+            sessionStorage.removeItem(
+                "HIK_LOGIN"
+            );
+
+            sessionStorage.removeItem(
+                "HIK_LOGIN_USER"
+            );
 
         }
 
     }
+}
+
+window.addEventListener(
+    "load",
+    function(){
+
+        if(isCentralMode()){
+
+            loadCentralState(function(){
+                startLoginSessionCheck();
+            });
+
+            return;
+        }
+
+        startLoginSessionCheck();
+    }
 );
+
+if(isCentralMode()){
+    setInterval(function(){
+        if(currentUser){
+            refreshCentralState();
+        }
+    },30000);
+}
 
 </script>
 
